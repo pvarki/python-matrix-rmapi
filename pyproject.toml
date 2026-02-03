@@ -1,0 +1,89 @@
+[tool.poetry]
+name = "rmfpapi"
+version = "1.4.0"
+description = "Fake product RASENMAEHER integration API service"
+authors = ["Eero af Heurlin <eero.afheurlin@iki.fi>"]
+homepage = "https://github.com/pvarki/python-rasenmaeher-rmfpapi/"
+repository = "https://github.com/pvarki/python-rasenmaeher-rmfpapi/"
+license = "MIT"
+readme = "README.rst"
+
+[tool.poetry.scripts]
+rmfpapi = "rmfpapi.console:rmfpapi_cli"
+
+
+
+[tool.black]
+line-length = 120
+target-version = ['py38']
+exclude = '''
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+  |  __pycache__
+)
+'''
+
+[tool.mypy]
+strict=true
+
+[tool.pytest.ini_options]
+junit_family="xunit2"
+addopts="--cov=rmfpapi --cov-fail-under=55 --cov-branch"
+asyncio_mode="strict"
+
+[tool.pylint.format]
+max-line-length = 120
+
+[tool.pylint.design]
+max-parents = 10
+
+[tool.pylint.messages_control]
+disable=["fixme", "W1202", "C0209"]
+
+[tool.pylint.similarities]
+min-similarity-lines = 8
+ignore-imports = true
+
+[tool.coverage.run]
+omit = ["tests/*"]
+branch = true
+
+[tool.poetry.dependencies]
+python = ">3.9.1,<4.0"
+libadvian = "^1.4"
+libpvarki = { git="https://github.com/pvarki/python-libpvarki.git", tag="2.1.0"}
+fastapi = ">=0.89,<1.0"  # caret behaviour on 0.x is to lock to 0.x.*
+pydantic = ">=2.0,<3.0"
+jinja2 = "^3.1"
+uvicorn = {version = ">=0.20,<1.0", extras = ["standard"]}  # caret behaviour on 0.x is to lock to 0.x.*
+gunicorn = "^21.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0"
+coverage = "^7.4"
+pytest-cov = "^4.1"
+pylint = "^3.3"
+black = "^25.1"
+bandit = "^1.8"
+mypy = "^1.15"
+pre-commit = "^3.6"
+pytest-asyncio = ">=0.21,<1.0" # caret behaviour on 0.x is to lock to 0.x.*
+bump2version = "^1.0"
+detect-secrets = "^1.5"
+httpx = ">=0.28.1,<1.0"
+
+
+[build-system]
+requires = ["poetry-core>=1.2.0"]
+build-backend = "poetry.core.masonry.api"
