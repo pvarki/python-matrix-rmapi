@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "matrixrmapi"
-version = "0.0.0"
+version = "0.0.1"
 description = "Matrix service RASENMAEHER integration API service"
 authors = ["Eero af Heurlin <eero.afheurlin@iki.fi>"]
 homepage = "https://github.com/pvarki/python-rasenmaeher-matrixrmapi/"

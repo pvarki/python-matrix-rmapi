@@ -6,7 +6,7 @@ from matrixrmapi import __version__
 
 def test_version() -> None:
     """Make sure version matches expected"""
-    assert __version__ == "0.0.0"
+    assert __version__ == "0.0.1"
 
 
 def test_healthcheck(mtlsclient: TestClient) -> None:
