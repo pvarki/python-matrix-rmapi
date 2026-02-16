@@ -1,15 +1,15 @@
 [tool.poetry]
-name = "rmfpapi"
+name = "matrixrmapi"
 version = "1.4.0"
 description = "Matrix service RASENMAEHER integration API service"
 authors = ["Eero af Heurlin <eero.afheurlin@iki.fi>"]
-homepage = "https://github.com/pvarki/python-rasenmaeher-rmfpapi/"
-repository = "https://github.com/pvarki/python-rasenmaeher-rmfpapi/"
+homepage = "https://github.com/pvarki/python-rasenmaeher-matrixrmapi/"
+repository = "https://github.com/pvarki/python-rasenmaeher-matrixrmapi/"
 license = "MIT"
 readme = "README.rst"
 
 [tool.poetry.scripts]
-rmfpapi = "rmfpapi.console:rmfpapi_cli"
+matrixrmapi = "matrixrmapi.console:matrixrmapi_cli"
 
 
 
@@ -39,7 +39,7 @@ strict=true
 
 [tool.pytest.ini_options]
 junit_family="xunit2"
-addopts="--cov=rmfpapi --cov-fail-under=55 --cov-branch"
+addopts="--cov=matrixrmapi --cov-fail-under=55 --cov-branch"
 asyncio_mode="strict"
 
 [tool.pylint.format]

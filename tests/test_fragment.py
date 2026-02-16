@@ -7,7 +7,7 @@ import base64
 from fastapi.testclient import TestClient
 import pytest
 
-from rmfpapi.config import get_manifest
+from matrixrmapi.config import get_manifest
 from .conftest import APP
 
 LOGGER = logging.getLogger(__name__)

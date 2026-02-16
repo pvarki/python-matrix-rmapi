@@ -107,7 +107,7 @@ RUN --mount=type=ssh apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/* \
     && chmod a+x /docker-entrypoint.sh \
     && chmod a+x /container-init.sh \
-    && WHEELFILE=`echo /tmp/wheelhouse/rmfpapi-*.whl` \
+    && WHEELFILE=`echo /tmp/wheelhouse/matrixrmapi-*.whl` \
     && pip3 install --find-links=/tmp/wheelhouse/ "$WHEELFILE"[all] \
     && rm -rf /tmp/wheelhouse/ \
     # Do whatever else you need to

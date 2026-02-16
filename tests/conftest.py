@@ -9,8 +9,8 @@ from libpvarki.logging import init_logging
 import pytest
 from fastapi.testclient import TestClient
 
-from rmfpapi.app import get_app
-from rmfpapi.config import get_manifest
+from matrixrmapi.app import get_app
+from matrixrmapi.config import get_manifest
 
 # Default is "ecs" and it's not great for tests
 os.environ["LOG_CONSOLE_FORMATTER"] = "local"

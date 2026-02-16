@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from libpvarki.logging import init_logging
 
-from rmfpapi import __version__
+from matrixrmapi import __version__
 from .config import LOG_LEVEL, get_manifest
 from .api import all_routers, all_routers_v2
 

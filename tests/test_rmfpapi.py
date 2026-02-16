@@ -1,7 +1,7 @@
 """Package level tests"""
 
 from fastapi.testclient import TestClient
-from rmfpapi import __version__
+from matrixrmapi import __version__
 
 
 def test_version() -> None:

@@ -34,14 +34,14 @@ Creating a development container
 
 Build image, create container and start it::
 
-    docker build --ssh default --target devel_shell -t rmfpapi:devel_shell .
-    docker create --name rmfpapi_devel -p 4625:4625 -v `pwd`":/app" -it `echo $DOCKER_SSHAGENT` rmfpapi:devel_shell
-    docker start -i rmfpapi_devel
+    docker build --ssh default --target devel_shell -t matrixrmapi:devel_shell .
+    docker create --name matrixrmapi_devel -p 4625:4625 -v `pwd`":/app" -it `echo $DOCKER_SSHAGENT` matrixrmapi:devel_shell
+    docker start -i matrixrmapi_devel
 
 
 In the shell you can start the uvicorn devel server with (binding to 0.0.0.0 is important!)::
 
-    uvicorn "rmfpapi.app:get_app" --factory --host 0.0.0.0 --port 4625 --reload --log-level debug
+    uvicorn "matrixrmapi.app:get_app" --factory --host 0.0.0.0 --port 4625 --reload --log-level debug
 
 
 pre-commit considerations
@@ -49,13 +49,13 @@ pre-commit considerations
 
 If working in Docker instead of native env you need to run the pre-commit checks in docker too::
 
-    docker exec -i rmfpapi_devel /bin/bash -c "pre-commit install  --install-hooks"
-    docker exec -i rmfpapi_devel /bin/bash -c "pre-commit run --all-files"
+    docker exec -i matrixrmapi_devel /bin/bash -c "pre-commit install  --install-hooks"
+    docker exec -i matrixrmapi_devel /bin/bash -c "pre-commit run --all-files"
 
 You need to have the container running, see above. Or alternatively use the docker run syntax but using
 the running container is faster::
 
-    docker run --rm -it -v `pwd`":/app" rmfpapi:devel_shell -c "pre-commit run --all-files"
+    docker run --rm -it -v `pwd`":/app" matrixrmapi:devel_shell -c "pre-commit run --all-files"
 
 Test suite
 ^^^^^^^^^^
@@ -63,8 +63,8 @@ Test suite
 You can use the devel shell to run py.test when doing development, for CI use
 the "tox" target in the Dockerfile::
 
-    docker build --ssh default --target tox -t rmfpapi:tox .
-    docker run --rm -it -v `pwd`":/app" `echo $DOCKER_SSHAGENT` rmfpapi:tox
+    docker build --ssh default --target tox -t matrixrmapi:tox .
+    docker run --rm -it -v `pwd`":/app" `echo $DOCKER_SSHAGENT` matrixrmapi:tox
 
 Production docker
 ^^^^^^^^^^^^^^^^^
@@ -72,8 +72,8 @@ Production docker
 There's a "production" target as well for running the application, remember to change that
 architecture tag to arm64 if building on ARM::
 
-    docker build --ssh default --target production -t rmfpapi:latest .
-    docker run -it --name rmfpapi -p 4625:4625 rmfpapi:amd64-latest
+    docker build --ssh default --target production -t matrixrmapi:latest .
+    docker run -it --name matrixrmapi -p 4625:4625 matrixrmapi:amd64-latest
 
 Development
 -----------

@@ -8,8 +8,8 @@ import click
 from libadvian.logging import init_logging
 import aiohttp
 
-from rmfpapi import __version__
-from rmfpapi.app import get_app
+from matrixrmapi import __version__
+from matrixrmapi.app import get_app
 
 
 LOGGER = logging.getLogger(__name__)
@@ -70,7 +70,7 @@ def dump_openapi(ctx: click.Context) -> None:
     ctx.exit(0)
 
 
-def rmfpapi_cli() -> None:
-    """rmfpapi"""
+def matrixrmapi_cli() -> None:
+    """matrixrmapi"""
     init_logging(logging.WARNING)
     cli_group()  # pylint: disable=no-value-for-parameter

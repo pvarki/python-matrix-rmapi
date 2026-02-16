@@ -42,4 +42,4 @@ jobs:
     - uses: pvarki/ci@main
       with:
         dockerfile-target: devel_shell
-        image-tag: rmfpapi:devel_shell
+        image-tag: matrixrmapi:devel_shell
