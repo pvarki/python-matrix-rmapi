@@ -1,6 +1,6 @@
-=======
-rmfpapi
-=======
+===================
+python-matrix-rmapi
+===================
 
 Matrix service RASENMAEHER integration API service. Serves as a reference implementation for a new integration into the deploy app ecosystem.
 

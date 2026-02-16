@@ -16,6 +16,7 @@ router_v2 = APIRouter()
 
 PRODUCT_SHORTNAME = "matrix"
 
+
 class ProductComponent(BaseModel):  # pylint: disable=too-few-public-methods
     """Project component info"""
 
@@ -60,7 +61,7 @@ async def return_product_description(language: str) -> ProductDescription:
             shortname=PRODUCT_SHORTNAME,
             title="Matrix",
             icon=None,
-            description="Matrix product",
+            description="Matrix messaging service",
             language="en",
         )
     # NOTE: Generally should return just the default language but this is for testing purposes
@@ -98,9 +99,9 @@ async def return_product_description_extended(language: str) -> ProductDescripti
         )
     return ProductDescriptionExtended(
         shortname=PRODUCT_SHORTNAME,
-        title="Matrix Product",
+        title="Matrix",
         icon=None,
-        description="Matrix product for integrations testing and examples",
+        description="Matrix messaging service",
         language=language,
         docs=docs_url,
         component=ProductComponent(type="markdown", ref=md_url),
