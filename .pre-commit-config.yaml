@@ -30,6 +30,7 @@ repos:
     -   id: pretty-format-json
         args:
         - --autofix
+        exclude: ^ui/
 -   repo: https://github.com/psf/black
     rev: 25.1.0
     hooks:
@@ -84,3 +85,20 @@ repos:
     hooks:
         - id: actionlint
           args: ["-shellcheck", "''"]
+-   repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.0.3
+    hooks:
+    -   id: prettier
+        files: ^ui/
+-   repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.50.0
+    hooks:
+    -   id: eslint
+        files: ^ui/
+        types_or: [javascript, jsx, ts, tsx]
+        additional_dependencies:
+          - "eslint@8.50.0"
+          - "@typescript-eslint/parser"
+          - "@typescript-eslint/eslint-plugin"
+          - "eslint-plugin-react-hooks"
+          - "eslint-plugin-react-refresh"

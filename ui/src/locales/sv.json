@@ -1,0 +1,27 @@
+{"onboarding": {
+    "back": "Tillbaka",
+    "clickToEnlarge": "Klicka f\u00f6r att f\u00f6rstora",
+    "completion": "Introduktionen \u00e4r slutf\u00f6rd!",
+    "completionDesc": "Du \u00e4r redo och kan nu arbeta i full kapacitet.",
+    "finish": "Slutf\u00f6r",
+    "imageMissing": "Bild inte tillg\u00e4nglig",
+    "next": "N\u00e4sta",
+    "of": "av",
+    "progressSaved": "Dina introduktionsframsteg har sparats.",
+    "review": "Granska introduktion",
+    "step": "Steg",
+      "steps": {
+      "home": {
+        "test": {
+          "description": "You are about to leave the Matrix.... :(",
+          "title": "Second page for test"
+        },
+        "welcome": {
+          "description": "There is no going back after this one...",
+          "title": "Enter The Matrix.."
+        }
+      }
+    },
+    "title": "Introduktion till MediaMTX"
+  }
+}
