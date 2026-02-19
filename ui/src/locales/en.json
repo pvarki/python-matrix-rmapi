@@ -11,7 +11,7 @@
     "progressSaved": "Your onboarding progress has been saved.",
     "review": "Review onboarding",
     "step": "Step",
-      "steps": {
+    "steps": {
       "home": {
         "test": {
           "description": "You are about to leave the Matrix.... :(",
@@ -24,4 +24,5 @@
       }
     },
     "title": "Onboard to MediaMTX"
-  }}
+  }
+}

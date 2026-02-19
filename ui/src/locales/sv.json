@@ -1,4 +1,5 @@
-{"onboarding": {
+{
+  "onboarding": {
     "back": "Tillbaka",
     "clickToEnlarge": "Klicka f\u00f6r att f\u00f6rstora",
     "completion": "Introduktionen \u00e4r slutf\u00f6rd!",
@@ -10,7 +11,7 @@
     "progressSaved": "Dina introduktionsframsteg har sparats.",
     "review": "Granska introduktion",
     "step": "Steg",
-      "steps": {
+    "steps": {
       "home": {
         "test": {
           "description": "You are about to leave the Matrix.... :(",

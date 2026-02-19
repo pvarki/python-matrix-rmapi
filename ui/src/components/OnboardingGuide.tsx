@@ -45,10 +45,9 @@ function HOME_PAGE_ONBOARDING_STEPS(theme: string): OnboardingStep[] {
       description: "onboarding.steps.home.test.description",
       image: ``,
       mobileImage: `/`,
-    }
+    },
   ];
 }
-
 
 const getOnboardingImage = (
   step: OnboardingStep,

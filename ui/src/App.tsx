@@ -16,7 +16,6 @@ import svLang from "./locales/sv.json";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MetaData, MetaProvider } from "./lib/metadata";
 
-
 const RootLayoutComponent = () => (
   <div className="max-w-5xl mx-auto p-6">
     <Outlet />
@@ -32,7 +31,6 @@ const homeRoute = createRoute({
   path: "/",
   component: HomePage,
 });
-
 
 const routeTree = rootRoute.addChildren([homeRoute]);
 
