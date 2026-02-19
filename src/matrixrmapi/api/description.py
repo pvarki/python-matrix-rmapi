@@ -74,7 +74,6 @@ async def return_product_description(language: str) -> ProductDescription:
 )
 async def return_product_description_extended(language: str) -> ProductDescriptionExtended:
     """Fetch description from each product in manifest"""
-    md_url = f"/api/v1/product/proxy/{PRODUCT_SHORTNAME}/api/v2/clients/{language}/info.md"
     docs_url = "https://pvarki.github.io/Docusaurus-docs/docs/android/deployapp/home/"
 
     if language == "fi":
