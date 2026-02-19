@@ -1,12 +1,12 @@
 {
   "onboarding": {
     "back": "Tillbaka",
-    "clickToEnlarge": "Klicka f\u00f6r att f\u00f6rstora",
-    "completion": "Introduktionen \u00e4r slutf\u00f6rd!",
-    "completionDesc": "Du \u00e4r redo och kan nu arbeta i full kapacitet.",
-    "finish": "Slutf\u00f6r",
-    "imageMissing": "Bild inte tillg\u00e4nglig",
-    "next": "N\u00e4sta",
+    "clickToEnlarge": "Klicka för att förstora",
+    "completion": "Introduktionen är slutförd!",
+    "completionDesc": "Du är redo och kan nu arbeta i full kapacitet.",
+    "finish": "Slutför",
+    "imageMissing": "Bild inte tillgänglig",
+    "next": "Nästa",
     "of": "av",
     "progressSaved": "Dina introduktionsframsteg har sparats.",
     "review": "Granska introduktion",
@@ -23,6 +23,6 @@
         }
       }
     },
-    "title": "Introduktion till MediaMTX"
+    "title": "Introduktion till Matrix"
   }
 }

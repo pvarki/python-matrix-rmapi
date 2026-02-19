@@ -2,14 +2,14 @@
   "onboarding": {
     "back": "Takaisin",
     "clickToEnlarge": "Klikkaa suurentaaksesi",
-    "completion": "Perehdytt\u00e4minen valmis!",
-    "completionDesc": "Olet valmis ja voit nyt ty\u00f6skennell\u00e4 t\u00e4ysill\u00e4 teholla.",
+    "completion": "Perehdyttäminen valmis!",
+    "completionDesc": "Olet valmis ja voit nyt työskennellä täysillä teholla.",
     "finish": "Valmis",
     "imageMissing": "Kuva ei ole saatavilla",
     "next": "Seuraava",
     "of": "/",
-    "progressSaved": "Perehdytt\u00e4misen edistyminen on tallennettu.",
-    "review": "Tarkista perehdytt\u00e4minen",
+    "progressSaved": "Perehdyttämisen edistyminen on tallennettu.",
+    "review": "Tarkista perehdyttäminen",
     "step": "Vaihe",
     "steps": {
       "home": {
@@ -23,6 +23,6 @@
         }
       }
     },
-    "title": "MediaMTX -sovelluksen perehdytt\u00e4minen"
+    "title": "Matrix -sovelluksen perehdyttäminen"
   }
 }
