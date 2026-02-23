@@ -79,9 +79,9 @@ async def return_product_description_extended(language: str) -> ProductDescripti
     if language == "fi":
         return ProductDescriptionExtended(
             shortname=PRODUCT_SHORTNAME,
-            title="Feikkituote",
+            title="Matrix",
             icon=f"ui/{PRODUCT_SHORTNAME}/matrixlogo.svg",
-            description=""""tuote" integraatioiden testaamiseen""",
+            description="""Matrix viestipalvelu""",
             language=language,
             docs=docs_url,
             component=ProductComponent(type="component", ref=f"/ui/{PRODUCT_SHORTNAME}/remoteEntry.js"),
@@ -89,9 +89,9 @@ async def return_product_description_extended(language: str) -> ProductDescripti
     if language == "sv":
         return ProductDescriptionExtended(
             shortname=PRODUCT_SHORTNAME,
-            title="Falsk produkt",
+            title="Matrix",
             icon=f"ui/{PRODUCT_SHORTNAME}/matrixlogo.svg",
-            description="Falsk produkt för integrationstestning och exempel",
+            description="Matrix meddelandetjänst",
             language=language,
             docs=docs_url,
             component=ProductComponent(type="component", ref=f"/ui/{PRODUCT_SHORTNAME}/remoteEntry.js"),

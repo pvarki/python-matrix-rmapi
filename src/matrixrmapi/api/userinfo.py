@@ -34,9 +34,9 @@ async def get_info(
     dname = manifest.get("deployment")
     if language == "fi":
         return f"""
-## Feikkituote
+## Matrix
 
-Terve {callsign}! Tämä on esimerkki tuoteintegraatioiden kehittäjille.
+Terve {callsign}! Tämä on käyttöliittymä matrix viestintäpalvelua varten.
 
 Pyörii deploymentissa "{dname}"
 
@@ -46,7 +46,7 @@ Pyörii deploymentissa "{dname}"
     return f"""
 ## Matrix product
 
-Hello {callsign}! This is a minimal example integration for integration developers' reference.
+Hello {callsign}! This is the UI for the matrix messaging service.
 
 Running on deployment "{dname}"
 """
