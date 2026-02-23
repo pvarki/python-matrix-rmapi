@@ -8,12 +8,17 @@ echo "$GW_IP localmaeher.dev.pvarki.fi mtls.localmaeher.dev.pvarki.fi" >>/etc/ho
 echo "*** BEGIN /etc/hosts ***"
 cat /etc/hosts
 echo "*** END /etc/hosts ***"
+
+if [ -f /data/persistent/public/mtlsclient.pem ]; then
+  echo "Certificates exist, skipping init."
+else
+  /kw_product_init init /pvarki/kraftwerk-init.json
+fi
+
 if [ -f /data/persistent/firstrun.done ]
 then
   echo "First run already cone"
 else
-  # Do the normal init
-  /kw_product_init init /pvarki/kraftwerk-init.json
   # FIXME: This should be done natively in the FastAPI app
   /kw_product_init ready --productname "matrix" --apiurl "https://api.example.com:8443/"  --userurl "https://example.com/"  /pvarki/kraftwerk-init.json
   date -u +"%Y%m%dT%H%M" >/data/persistent/firstrun.done
