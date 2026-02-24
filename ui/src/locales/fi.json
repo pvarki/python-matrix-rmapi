@@ -1,4 +1,13 @@
 {
+  "common": {
+    "copy": "Kopioi",
+    "copied": "Kopioitu leikepöydälle!"
+  },
+  "homepage": {
+    "label": "Matrix-kotipalvelimen osoite",
+    "description": "Syötä alla oleva osoite Matrix-sovelluksesi kotipalvelimeksi.",
+    "copyButton": "Kopioi"
+  },
   "onboarding": {
     "back": "Takaisin",
     "clickToEnlarge": "Klikkaa suurentaaksesi",

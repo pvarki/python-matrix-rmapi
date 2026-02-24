@@ -1,4 +1,13 @@
 {
+  "common": {
+    "copy": "Kopiera",
+    "copied": "Kopierat till urklipp!"
+  },
+  "homepage": {
+    "label": "Matrix-hemserverns adress",
+    "description": "Ange adressen nedan i din Matrix-klient som hemserver.",
+    "copyButton": "Kopiera"
+  },
   "onboarding": {
     "back": "Tillbaka",
     "clickToEnlarge": "Klicka för att förstora",
