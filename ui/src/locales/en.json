@@ -1,4 +1,13 @@
 {
+  "common": {
+    "copy": "Copy",
+    "copied": "Copied to clipboard!"
+  },
+  "homepage": {
+    "label": "Matrix homeserver URL",
+    "description": "Enter the address below into your Matrix-client as the homeserver.",
+    "copyButton": "Copy"
+  },
   "onboarding": {
     "back": "Back",
     "clickToEnlarge": "Click to enlarge",
