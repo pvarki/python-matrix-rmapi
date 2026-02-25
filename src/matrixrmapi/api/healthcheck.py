@@ -9,7 +9,7 @@ from libpvarki.schemas.product import ProductHealthCheckResponse
 
 LOGGER = logging.getLogger(__name__)
 
-router = APIRouter(dependencies=[Depends(MTLSHeader(auto_error=True))])
+router = APIRouter()
 
 
 @router.get("")
