@@ -21,17 +21,69 @@
     "review": "Review onboarding",
     "step": "Step",
     "steps": {
-      "home": {
-        "test": {
-          "description": "You are about to leave the Matrix.... :(",
-          "title": "Second page for test"
-        },
-        "welcome": {
-          "description": "There is no going back after this one...",
-          "title": "Enter The Matrix.."
-        }
+      "desktop-intro": {
+        "title": "Welcome to Matrix",
+        "description": "This onboarding uses the Element-client, but you can use almost any Matrix Client. The steps you need to take should be somewhat similar in other clients."
+      },
+      "setup": {
+        "title": "Prerequisites",
+        "description": "Copy the homeserver address (1). You can return to the guide always from the bottom right corner.(2)"
+      },
+      "desktop-step-1": {
+        "title": "Log into Element - 1",
+        "description": "Open Element and select \"Sign in\"."
+      },
+      "desktop-step-2": {
+        "title": "Log into Element - 2",
+        "description": "Press \"Edit\" on the homeserver address."
+      },
+      "desktop-step-3": {
+        "title": "Log into Element - 3",
+        "description": "Paste the server address you copied earlier. Press \"Continue\"."
+      },
+      "desktop-step-4": {
+        "title": "Log into Element - 4",
+        "description": "Press \"Continue with Keycloak\". Continue in your browser, which should ask your for your mTLS-certificate. Authenticate with mTLS."
+      },
+      "desktop-step-5": {
+        "title": "Element Homepage",
+        "description": "You are now logged in and able to use Matrix. You can see or create spaces on the left (1). You can see and create your direct messages near the middle (2)."
+      },
+      "mobile-intro": {
+        "title": "Welcome to Matrix",
+        "description": "This onboarding uses the Element Classic-client, but you can use almost any Matrix Client. The steps you need to take should be somewhat similar in other clients."
+      },
+      "mobile-step-1": {
+        "title": "Log into Element Classic - 1",
+        "description": "Open Element and select \"Sign in\"."
+      },
+      "mobile-step-2": {
+        "title": "Log into Element Classic - 2",
+        "description": "Press \"Edit\" on the homeserver address."
+      },
+      "mobile-step-3": {
+        "title": "Log into Element Classic - 3",
+        "description": "Paste the server address you copied earlier. Press \"Next\"."
+      },
+      "mobile-step-4": {
+        "title": "Log into Element Classic - 4",
+        "description": "Press \"Continue with Keycloak\". Continue in your browser, which should ask your for your mTLS-certificate. Authenticate with mTLS."
+      },
+      "mobile-step-5": {
+        "title": "Element Classic Homepage",
+        "description": "You are now logged in and able to use Matrix. You search users and rooms at the top right corner (1). You can start a chat from the bottom right corner (2)."
       }
     },
-    "title": "Onboard to Matrix"
+    "title": "Onboard to Matrix",
+    "downloads": {
+      "open_website": "Open download website"
+    }
+  },
+  "platform": {
+    "select_placeholder": "Select platform",
+    "android": "Android",
+    "ios": "iOS",
+    "linux": "Linux",
+    "windows": "Windows"
   }
 }

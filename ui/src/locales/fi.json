@@ -11,27 +11,79 @@
   "onboarding": {
     "back": "Takaisin",
     "clickToEnlarge": "Klikkaa suurentaaksesi",
-    "completion": "Perehdyttäminen valmis!",
-    "completionDesc": "Olet valmis ja voit nyt työskennellä täysillä teholla.",
-    "finish": "Valmis",
-    "imageMissing": "Kuva ei ole saatavilla",
+    "completion": "Perehdytys valmis!",
+    "completionDesc": "Kaikki on valmista ja olet valmis aloittamaan.",
+    "finish": "Lopeta",
+    "imageMissing": "Kuvaa ei ole saatavilla",
     "next": "Seuraava",
     "of": "/",
-    "progressSaved": "Perehdyttämisen edistyminen on tallennettu.",
-    "review": "Tarkista perehdyttäminen",
+    "progressSaved": "Perehdytyksen edistyminen on tallennettu.",
+    "review": "Tarkastele perehdytystä",
     "step": "Vaihe",
     "steps": {
-      "home": {
-        "test": {
-          "description": "You are about to leave the Matrix.... :(",
-          "title": "Second page for test"
-        },
-        "welcome": {
-          "description": "There is no going back after this one...",
-          "title": "Enter The Matrix.."
-        }
+      "desktop-intro": {
+        "title": "Tervetuloa Matrixiin",
+        "description": "Tämä opas käyttää Element-sovellusta, mutta voit käyttää mitä tahansa Matrix-sovellusta. Vaiheet ovat samankaltaisia muissakin sovelluksissa."
+      },
+      "setup": {
+        "title": "Esivaatimukset",
+        "description": "Kopioi kotipalvelimen osoite (1). Voit palata oppaaseen milloin vain oikeasta alakulmasta (2)."
+      },
+      "desktop-step-1": {
+        "title": "Kirjaudu Elementiin - 1",
+        "description": "Avaa Element ja valitse \"Log in\"."
+      },
+      "desktop-step-2": {
+        "title": "Kirjaudu Elementiin - 2",
+        "description": "Paina \"Edit\" kotipalvelimen osoitteen kohdalta."
+      },
+      "desktop-step-3": {
+        "title": "Kirjaudu Elementiin - 3",
+        "description": "Liitä aiemmin kopioimasi palvelimen osoite. Paina \"Continue\"."
+      },
+      "desktop-step-4": {
+        "title": "Kirjaudu Elementiin - 4",
+        "description": "Paina \"Continue with Keycloak\". Jatka selaimessasi, jonka pitäisi pyytää mTLS-varmennettasi muutaman kerran. Tunnistaudu mTLS-varmenteella."
+      },
+      "desktop-step-5": {
+        "title": "Elementin kotinäkymä",
+        "description": "Olet nyt kirjautunut sisään ja voit käyttää Matrixia. Voit tarkastella tai luoda tiloja (Spaces) sivupalkista (1). Näet ja voit luoda suoraviestejä vasemmasta reunasta (2)."
+      },
+      "mobile-intro": {
+        "title": "Tervetuloa Matrixiin",
+        "description": "Tämä opas käyttää Element Classic -sovellusta, mutta voit käyttää lähes mitä tahansa Matrix-sovellusta. Vaiheet ovat samankaltaisia muissakin sovelluksissa."
+      },
+      "mobile-step-1": {
+        "title": "Kirjaudu Element Classiciin - 1",
+        "description": "Avaa Element ja valitse \"Sign in\"."
+      },
+      "mobile-step-2": {
+        "title": "Kirjaudu Element Classiciin - 2",
+        "description": "Paina \"Edit\" kotipalvelimen osoitteen kohdalta."
+      },
+      "mobile-step-3": {
+        "title": "Kirjaudu Element Classiciin - 3",
+        "description": "Liitä aiemmin kopioimasi palvelimen osoite. Paina \"Next\"."
+      },
+      "mobile-step-4": {
+        "title": "Kirjaudu Element Classiciin - 4",
+        "description": "Paina \"Continue with Keycloak\". Jatka selaimessasi, jonka pitäisi pyytää mTLS-varmennettasi. Tunnistaudu mTLS-varmenteella."
+      },
+      "mobile-step-5": {
+        "title": "Element Classicin kotinäkymä",
+        "description": "Olet nyt kirjautunut sisään ja voit käyttää Matrixia. Voit etsiä käyttäjiä ja huoneita oikeasta yläkulmasta (1). Voit aloittaa keskustelun oikeasta alakulmasta (2)."
       }
     },
-    "title": "Matrix -sovelluksen perehdyttäminen"
+    "title": "Matrix-perehdytys",
+    "downloads": {
+      "open_website": "Avaa lataussivusto"
+    }
+  },
+  "platform": {
+    "select_placeholder": "Valitse alusta",
+    "android": "Android",
+    "ios": "iOS",
+    "linux": "Linux",
+    "windows": "Windows"
   }
 }

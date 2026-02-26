@@ -1,12 +1,12 @@
 import { useTranslation } from "react-i18next";
 import { PRODUCT_SHORTNAME } from "@/App";
-import { OnboardingGuide } from "@/components/OnboardingGuide";
 import { Toaster } from "@/components/ui/sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
 import { copyToClipboard } from "@/lib/clipboard";
+import { OnboardingHandler } from "@/components/OnboardingGuide";
 
 export const HomePage = () => {
   const { t } = useTranslation(PRODUCT_SHORTNAME);
@@ -44,7 +44,7 @@ export const HomePage = () => {
         </div>
 
         <Toaster position="top-center" />
-        <OnboardingGuide />
+        <OnboardingHandler />
       </div>
     </div>
   );
