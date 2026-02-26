@@ -9,29 +9,81 @@
     "copyButton": "Kopiera"
   },
   "onboarding": {
-    "back": "Tillbaka",
+    "back": "Bakåt",
     "clickToEnlarge": "Klicka för att förstora",
-    "completion": "Introduktionen är slutförd!",
-    "completionDesc": "Du är redo och kan nu arbeta i full kapacitet.",
+    "completion": "Introduktionen är klar!",
+    "completionDesc": "Allt är klart och du är redo att köra igång.",
     "finish": "Slutför",
-    "imageMissing": "Bild inte tillgänglig",
+    "imageMissing": "Bild saknas",
     "next": "Nästa",
     "of": "av",
-    "progressSaved": "Dina introduktionsframsteg har sparats.",
+    "progressSaved": "Dina framsteg i introduktionen har sparats.",
     "review": "Granska introduktion",
     "step": "Steg",
     "steps": {
-      "home": {
-        "test": {
-          "description": "You are about to leave the Matrix.... :(",
-          "title": "Second page for test"
-        },
-        "welcome": {
-          "description": "There is no going back after this one...",
-          "title": "Enter The Matrix.."
-        }
+      "desktop-intro": {
+        "title": "Välkommen till Matrix",
+        "description": "Denna introduktion använder Element-klienten, men du kan använda vilken Matrix-klient som helst. Stegen bör vara liknande i andra klienter."
+      },
+      "setup": {
+        "title": "Förutsättningar",
+        "description": "Kopiera adressen till hemservern (1). Du kan alltid återvända till guiden via det nedre högra hörnet (2)."
+      },
+      "desktop-step-1": {
+        "title": "Logga in i Element - 1",
+        "description": "Öppna Element och välj \"Logga in\"."
+      },
+      "desktop-step-2": {
+        "title": "Logga in i Element - 2",
+        "description": "Tryck på \"Redigera\" vid hemserverns adress."
+      },
+      "desktop-step-3": {
+        "title": "Logga in i Element - 3",
+        "description": "Klistra in serveradressen du kopierade tidigare. Tryck på \"Fortsätt\"."
+      },
+      "desktop-step-4": {
+        "title": "Logga in i Element - 4",
+        "description": "Tryck på \"Fortsätt med Keycloak\". Fortsätt i din webbläsare, som bör fråga efter ditt mTLS-certifikat några gånger. Autentisera med mTLS."
+      },
+      "desktop-step-5": {
+        "title": "Elements startsida",
+        "description": "Du är nu inloggad och kan använda Matrix. Du kan se eller skapa ytor (Spaces) till vänster (1). Du kan se och skapa direktmeddelanden i mitten (2)."
+      },
+      "mobile-intro": {
+        "title": "Välkommen till Matrix",
+        "description": "Denna introduktion använder Element Classic-klienten, men du kan använda nästan vilken Matrix-klient som helst. Stegen bör vara liknande i andra klienter."
+      },
+      "mobile-step-1": {
+        "title": "Logga in i Element Classic - 1",
+        "description": "Öppna Element och välj \"Sign in\"."
+      },
+      "mobile-step-2": {
+        "title": "Logga in i Element Classic - 2",
+        "description": "Tryck på \"Edit\" vid hemserverns adress."
+      },
+      "mobile-step-3": {
+        "title": "Logga in i Element Classic - 3",
+        "description": "Klistra in serveradressen du kopierade tidigare. Tryck på \"Next\"."
+      },
+      "mobile-step-4": {
+        "title": "Logga in i Element Classic - 4",
+        "description": "Tryck på \"Continue with Keycloak\". Fortsätt i din webbläsare, som bör fråga efter ditt mTLS-certifikat. Autentisera med mTLS."
+      },
+      "mobile-step-5": {
+        "title": "Element Classics startsida",
+        "description": "Du är nu inloggad och kan använda Matrix. Du kan söka efter användare och rum i det övre högra hörnet (1). Du kan starta en chatt från det nedre högra hörnet (2)."
       }
     },
-    "title": "Introduktion till Matrix"
+    "title": "Introduktion till Matrix",
+    "downloads": {
+      "open_website": "Öppna webbplatsen för nedladdning"
+    }
+  },
+  "platform": {
+    "select_placeholder": "Välj plattform",
+    "android": "Android",
+    "ios": "iOS",
+    "linux": "Linux",
+    "windows": "Windows"
   }
 }
