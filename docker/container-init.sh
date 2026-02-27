@@ -3,11 +3,12 @@ set -e
 # Resolve our magic names to docker internal ip
 GW_IP=$(getent ahostsv4 host.docker.internal | grep RAW | awk '{ print $1 }')
 echo "GW_IP=$GW_IP"
-grep -v -F -e "localmaeher"  -- /etc/hosts >/etc/hosts.new && cat /etc/hosts.new >/etc/hosts
-echo "$GW_IP localmaeher.dev.pvarki.fi mtls.localmaeher.dev.pvarki.fi kc.localmaeher.dev.pvarki.fi" >>/etc/hosts
+grep -v "$GW_IP" /etc/hosts > /etc/hosts.new && cat /etc/hosts.new > /etc/hosts
+echo "$GW_IP ${SERVER_DOMAIN} ${MTLS_DOMAIN} ${KCDOMAIN}" >>/etc/hosts
 echo "*** BEGIN /etc/hosts ***"
 cat /etc/hosts
 echo "*** END /etc/hosts ***"
+
 
 if [ -f /data/persistent/public/mtlsclient.pem ]; then
   echo "Certificates exist, skipping init."
@@ -16,6 +17,11 @@ else
   sleep 2
 fi
 
+if [ "${NGINX_HTTPS_PORT}" == "443" ]; then
+  export MTLS_BASEURL="https://mtls.${SERVER_DOMAIN}"
+else
+  export MTLS_BASEURL="https://mtls.${SERVER_DOMAIN}:${NGINX_HTTPS_PORT}"
+fi
 
 # Generate the manifest using environment variables
 # TODO use envsubst + dedicated file
@@ -23,16 +29,16 @@ cat <<EOF > /tmp/manifest.json
 {
   "rasenmaeher": {
     "mtls": {
-      "base_uri": "${MTLS_DOMAIN}"
+      "base_uri": "${MTLS_BASEURL}"
     },
     "kc": {
-      "base_uri": "${KCDOMAIN}",
+      "base_uri": "${KCDOMAIN}:9443",
       "realm": "${KCREALM}"
     }
   },
   "oidc": {
     "client_registration": {
-      "client_name": "Synapse",
+      "client_name": "Synapse"
     }
   }
 }
@@ -53,7 +59,5 @@ if [ -f /data/persistent/firstrun.done ]
 then
   echo "First run already cone"
 else
-  # FIXME: This should be done natively in the FastAPI app
-  # /kw_product_init ready --productname "matrix" --apiurl "https://api.example.com:8443/"  --userurl "https://example.com/"  /pvarki/kraftwerk-init.json
   date -u +"%Y%m%dT%H%M" >/data/persistent/firstrun.done
 fi
