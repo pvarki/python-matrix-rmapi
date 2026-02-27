@@ -18,9 +18,9 @@ else
 fi
 
 if [ "${NGINX_HTTPS_PORT}" == "443" ]; then
-  export MTLS_BASEURL="https://mtls.${SERVER_DOMAIN}"
+  export MTLS_BASEURL="mtls.${SERVER_DOMAIN}"
 else
-  export MTLS_BASEURL="https://mtls.${SERVER_DOMAIN}:${NGINX_HTTPS_PORT}"
+  export MTLS_BASEURL="mtls.${SERVER_DOMAIN}:${NGINX_HTTPS_PORT}"
 fi
 
 # Generate the manifest using environment variables
