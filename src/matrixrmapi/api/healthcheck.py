@@ -2,8 +2,7 @@
 
 import logging
 
-from fastapi import APIRouter, Depends
-from libpvarki.middleware import MTLSHeader
+from fastapi import APIRouter
 from libpvarki.schemas.product import ProductHealthCheckResponse
 
 
