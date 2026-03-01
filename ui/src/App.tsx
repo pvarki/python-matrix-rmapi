@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   createRootRoute,
@@ -44,8 +44,12 @@ export const PRODUCT_SHORTNAME = "matrix";
 export default ({ data, meta }: Props) => {
   const [ready, setReady] = useState(false);
   const { t, i18n } = useTranslation(PRODUCT_SHORTNAME);
-
-  const router = createRouter({ routeTree, basepath: "/product/matrix" });
+  
+  const router = useMemo( 
+    () => createRouter({ routeTree,
+      basepath: "/product/matrix" }),
+      [data], 
+    );
 
   useEffect(() => {
     console.log("Registering");
