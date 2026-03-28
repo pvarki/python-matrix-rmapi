@@ -3,7 +3,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: arc-runner-set
     permissions:
       contents: write
       pull-requests: write
@@ -37,9 +37,18 @@ jobs:
           check_name: 'JUnit report (local)'
 
   devel_shell:
-    runs-on: ubuntu-latest
+    runs-on: arc-runner-set
     steps:
     - uses: pvarki/ci@main
       with:
         dockerfile-target: devel_shell
         image-tag: matrixrmapi:devel_shell
+
+  docker_builds:
+    runs-on: arc-runner-set
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build test target
+        run: docker build --target test -t matrixrmapi:test .
+      - name: Build production target
+        run: docker build --target production -t matrixrmapi:production .
