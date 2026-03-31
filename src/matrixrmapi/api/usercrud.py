@@ -98,25 +98,28 @@ async def user_promoted(
 ) -> OperationResultResponse:
     """User promoted to admin — power level 100 in public rooms, invite to admin channel."""
     comes_from_rm(request)
-    synapse = _synapse(request)
-    rooms = _rooms(request)
-    if synapse is None or rooms is None:
-        LOGGER.warning("Synapse not ready; skipping promotion for %s", user.callsign)
-        return OperationResultResponse(success=True)
     try:
         uid = matrix_user_id(user.callsign, get_server_domain())
     except ValueError as exc:
         LOGGER.error("Invalid callsign for Matrix: %s", exc)
         return OperationResultResponse(success=False)
+    synapse = _synapse(request)
+    rooms = _rooms(request)
+    if synapse is None or rooms is None:
+        pending: Dict[str, str] = getattr(request.app.state, "pending_promotions", {})
+        pending[uid] = "promote"
+        request.app.state.pending_promotions = pending
+        LOGGER.info("Queued deferred promotion for %s (Synapse not ready yet)", uid)
+        return OperationResultResponse(success=True)
     try:
         await synapse.set_power_level_in_rooms(_public_room_ids(rooms), uid, 100)
         admin_id = rooms.get("admin")
         if admin_id:
-            await synapse.invite(admin_id, uid)
+            await synapse.force_join(admin_id, uid)
     except Exception as exc:  # pylint: disable=broad-except
         LOGGER.error("Failed to promote %s: %s", uid, exc)
         return OperationResultResponse(success=False)
-    LOGGER.info("Promoted %s: power level 100 + invited to admin channel", uid)
+    LOGGER.info("Promoted %s: power level 100 + force-joined to admin channel", uid)
     return OperationResultResponse(success=True)
 
 
@@ -127,16 +130,19 @@ async def user_demoted(
 ) -> OperationResultResponse:
     """User demoted from admin — remove power level 100, kick from admin channel."""
     comes_from_rm(request)
-    synapse = _synapse(request)
-    rooms = _rooms(request)
-    if synapse is None or rooms is None:
-        LOGGER.warning("Synapse not ready; skipping demotion for %s", user.callsign)
-        return OperationResultResponse(success=True)
     try:
         uid = matrix_user_id(user.callsign, get_server_domain())
     except ValueError as exc:
         LOGGER.error("Invalid callsign for Matrix: %s", exc)
         return OperationResultResponse(success=False)
+    synapse = _synapse(request)
+    rooms = _rooms(request)
+    if synapse is None or rooms is None:
+        pending: Dict[str, str] = getattr(request.app.state, "pending_promotions", {})
+        pending[uid] = "demote"
+        request.app.state.pending_promotions = pending
+        LOGGER.info("Queued deferred demotion for %s (Synapse not ready yet)", uid)
+        return OperationResultResponse(success=True)
     try:
         await synapse.set_power_level_in_rooms(_public_room_ids(rooms), uid, 0)
         admin_id = rooms.get("admin")

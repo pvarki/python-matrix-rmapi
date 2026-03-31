@@ -82,7 +82,7 @@ TLDR:
 
 - Create and activate a Python 3.11 virtualenv (assuming virtualenvwrapper)::
 
-    mkvirtualenv -p `which python3.11` my_virtualenv
+   mkvirtualenv -p `which python3.11` my_virtualenv
 
 - change to a branch::
 
@@ -99,3 +99,15 @@ TLDR:
 
 Remember to activate your virtualenv whenever working on the repo, this is needed
 because pylint and mypy pre-commit hooks use the "system" python for now (because reasons).
+
+Testing a local Synapse server
+------------------------------
+Aka, how to connect a Matrix client to your server to see how things work out.
+1. Make sure you trust your localmaeher's self-signed certs at https://synapse.localmaeher.dev.pvarki.fi:4439/. Navigate to that page, click accept the risk.
+2. Run the following command to set up an Element Web service as a client:
+
+    docker run --rm -p 8088:80 \
+    -e ELEMENT_WEB_CONFIG='{"default_server_config":{"m.homeserver":{"base_url":"https://synapse.localmaeher.dev.pvarki.fi:4439"}}}' \
+    vectorim/element-web
+
+3. Now navigate to http://localhost:8080. Log in to localmaeher's Synapse as usual.

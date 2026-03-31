@@ -38,6 +38,7 @@ class SynapseAdmin:
         self._url = synapse_url.rstrip("/")
         self._domain = server_domain
         self._token: Optional[str] = None
+        self._bot_user_id: Optional[str] = None
         self._client: httpx.AsyncClient = httpx.AsyncClient()
 
     async def close(self) -> None:
@@ -56,6 +57,7 @@ class SynapseAdmin:
 
     async def setup(self, registration_secret: str, bot_username: str, token_file: Path) -> None:
         """Acquire admin token: load from file or register bot if missing/invalid."""
+        self._bot_user_id = f"@{bot_username}:{self._domain}"
         if token_file.exists():
             candidate = token_file.read_text().strip()
             if await self._validate(candidate):
@@ -186,6 +188,10 @@ class SynapseAdmin:
         }
         if is_space:
             body["creation_content"] = {"type": "m.space"}
+        # Set bot to power level 200 so it can always demote admins (who are at 100).
+        # Matrix spec: you cannot lower a user at power level >= your own.
+        if self._bot_user_id:
+            body["power_level_content_override"] = {"users": {self._bot_user_id: 200}}
 
         resp = await self._client.post(
             f"{self._url}/_matrix/client/v3/createRoom",
@@ -207,9 +213,7 @@ class SynapseAdmin:
         )
         resp.raise_for_status()
 
-    async def set_room_state(
-        self, room_id: str, event_type: str, content: Dict[str, Any], state_key: str = ""
-    ) -> None:
+    async def set_room_state(self, room_id: str, event_type: str, content: Dict[str, Any], state_key: str = "") -> None:
         """Send a room state event."""
         path = f"{self._url}/_matrix/client/v3/rooms/{room_id}/state/{event_type}"
         if state_key:
@@ -239,12 +243,19 @@ class SynapseAdmin:
                 user_id,
             )
             return
+        if resp.status_code == 403:
+            body = resp.json()
+            if body.get("errcode") == "M_FORBIDDEN" and "already in the room" in body.get("error", ""):
+                LOGGER.info("User %s is already in room %s; skipping force_join", user_id, room_id)
+                return
         resp.raise_for_status()
 
     async def deactivate(self, user_id: str) -> None:
         """Deactivate and erase user. Silently succeeds if user does not exist in Synapse."""
+        # Use v1 endpoint — v2 path (/v2/users/{id}/deactivate) is unrecognised in some
+        # Synapse versions; v1 has been stable since early Synapse releases.
         resp = await self._client.post(
-            f"{self._url}/_synapse/admin/v2/users/{quote(user_id, safe='')}/deactivate",
+            f"{self._url}/_synapse/admin/v1/deactivate/{quote(user_id, safe='')}",
             headers=self._auth,
             json={"erase": True},
             timeout=30.0,
@@ -292,13 +303,18 @@ class SynapseAdmin:
         resp.raise_for_status()
 
     async def kick(self, room_id: str, user_id: str) -> None:
-        """Kick user from room."""
+        """Kick user from room. Silently skips if user is not in the room."""
         resp = await self._client.post(
             f"{self._url}/_matrix/client/v3/rooms/{room_id}/kick",
             headers=self._auth,
             json={"user_id": user_id},
             timeout=10.0,
         )
+        if resp.status_code == 403:
+            body = resp.json()
+            if body.get("errcode") == "M_FORBIDDEN" and "not in the room" in body.get("error", ""):
+                LOGGER.info("User %s is not in room %s; skipping kick", user_id, room_id)
+                return
         resp.raise_for_status()
 
     # ------------------------------------------------------------------

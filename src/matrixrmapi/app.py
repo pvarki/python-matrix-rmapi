@@ -115,8 +115,8 @@ async def _ensure_room(synapse: SynapseAdmin, name: str, alias: str, is_space: b
     return room_id
 
 
-async def _ensure_rooms(synapse: SynapseAdmin, app: FastAPI, deployment: str, domain: str) -> None:
-    """Create space and rooms if they don't exist; store IDs on app.state."""
+async def _ensure_rooms(synapse: SynapseAdmin, deployment: str, domain: str) -> Dict[str, str]:
+    """Create space and rooms if they don't exist; return room IDs dict."""
     room_ids: Dict[str, str] = {}
     space_id: Optional[str] = None
 
@@ -131,8 +131,27 @@ async def _ensure_rooms(synapse: SynapseAdmin, app: FastAPI, deployment: str, do
             if key != "space":
                 await synapse.add_child_to_space(space_id, room_id)
 
-    app.state.rooms = room_ids
-    LOGGER.info("Synapse rooms ready: %s", room_ids)
+    return room_ids
+
+
+async def _apply_pending(synapse: SynapseAdmin, rooms: Dict[str, str], pending: Dict[str, str]) -> None:
+    """Apply promotions/demotions that were queued while Synapse was still starting."""
+    public_ids = [rooms[k] for k in ("space", "general", "helpdesk", "offtopic") if k in rooms]
+    admin_id = rooms.get("admin")
+    for uid, action in pending.items():
+        try:
+            if action == "promote":
+                await synapse.set_power_level_in_rooms(public_ids, uid, 100)
+                if admin_id:
+                    await synapse.force_join(admin_id, uid)
+                LOGGER.info("Applied deferred promotion for %s", uid)
+            elif action == "demote":
+                await synapse.set_power_level_in_rooms(public_ids, uid, 0)
+                if admin_id:
+                    await synapse.kick(admin_id, uid)
+                LOGGER.info("Applied deferred demotion for %s", uid)
+        except Exception as exc:  # pylint: disable=broad-except
+            LOGGER.error("Failed to apply deferred %s for %s: %s", action, uid, exc)
 
 
 async def _configure_rooms_state(synapse: SynapseAdmin, rooms: Dict[str, str], deployment: str) -> None:
@@ -186,16 +205,28 @@ async def _synapse_startup(app: FastAPI) -> None:
     app.state.synapse = synapse
 
     try:
-        await _ensure_rooms(synapse, app, deployment, domain)
+        room_ids = await _ensure_rooms(synapse, deployment, domain)
     except Exception as exc:  # pylint: disable=broad-except
         LOGGER.error("Room setup failed: %s", exc)
+        return
 
-    rooms = getattr(app.state, "rooms", None)
-    if rooms:
-        try:
-            await _configure_rooms_state(synapse, rooms, deployment)
-        except Exception as exc:  # pylint: disable=broad-except
-            LOGGER.error("Room configuration failed: %s", exc)
+    try:
+        await _configure_rooms_state(synapse, room_ids, deployment)
+    except Exception as exc:  # pylint: disable=broad-except
+        LOGGER.error("Room configuration failed (rooms still usable): %s", exc)
+
+    # Expose rooms after configuration — prevents /promoted from racing with
+    # _configure_rooms_state's power-level read-modify-write on the space.
+    # Set even if configuration partially failed: rooms exist and are usable.
+    app.state.rooms = room_ids
+    LOGGER.info("Synapse rooms ready: %s", room_ids)
+
+    # Apply any promotions/demotions that arrived while rooms were not yet set.
+    pending: Dict[str, str] = getattr(app.state, "pending_promotions", {})
+    if pending:
+        LOGGER.info("Processing %d deferred promotion(s)/demotion(s)", len(pending))
+        app.state.pending_promotions = {}
+        await _apply_pending(synapse, room_ids, pending)
 
 
 @asynccontextmanager
