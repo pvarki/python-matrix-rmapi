@@ -4,6 +4,131 @@ python-matrix-rmapi
 
 Matrix service RASENMAEHER integration API service. Serves as a reference implementation for a new integration into the deploy app ecosystem.
 
+Operation
+---------
+
+matrixrmapi is the Deploy App integration layer for Matrix/Synapse. It has two responsibilities:
+
+1. **Synapse bootstrap** — on startup it registers an admin bot, creates the deployment's Space and rooms,
+   and configures their state.
+2. **User lifecycle** — it receives CRUD callbacks from Rasenmaeher over mTLS and reflects each event into
+   Synapse.
+
+Authentication
+^^^^^^^^^^^^^^
+
+All ``/api/v1/users/*`` endpoints require a valid mTLS client certificate whose CN matches the Rasenmaeher
+service certificate (taken from the kraftwerk manifest). Any other caller receives ``403 Forbidden``.
+
+Startup sequence
+^^^^^^^^^^^^^^^^
+
+The startup runs as a background task so the HTTP server is available immediately::
+
+    1. Poll GET /health on Synapse until it responds 200 (up to 5 minutes).
+    2. Acquire a file lock and register the admin bot via the Synapse HMAC-signed
+       registration endpoint (idempotent: if a valid token file already exists,
+       re-registration is skipped).
+    3. Remove rate-limiting for the bot user so concurrent room operations never hit 429.
+    4. Ensure the Space and four rooms exist (creates them if missing, looks them up by
+       alias otherwise).
+    5. Apply idempotent state events to every room: name, encryption, join rules,
+       history visibility, topics.
+    6. Expose ``app.state.rooms`` — this is the gate that CRUD endpoints check.
+    7. Drain any promotions/demotions that arrived while rooms were not yet ready
+       (see "Deferred queue" below).
+
+The admin bot is created at power level 200 in all rooms via ``power_level_content_override``
+so it can always demote admins (who are at level 100). This is a Matrix spec requirement:
+a user cannot lower the power level of another user at an equal-or-higher level.
+
+Rooms created
+^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+
+   * - Key
+     - Alias
+     - Notes
+   * - space
+     - ``#<deployment>-space:<domain>``
+     - Top-level Space; join rule: invite
+   * - general
+     - ``#<deployment>-general:<domain>``
+     - Public room; join rule: restricted (Space membership)
+   * - helpdesk
+     - ``#<deployment>-helpdesk:<domain>``
+     - Public room; join rule: restricted (Space membership)
+   * - offtopic
+     - ``#<deployment>-offtopic:<domain>``
+     - Public room; join rule: restricted (Space membership)
+   * - admin
+     - ``#<deployment>-admin:<domain>``
+     - Private room; only admins are joined
+
+All non-space rooms use ``m.megolm.v1.aes-sha2`` encryption and ``joined`` history visibility.
+
+User lifecycle endpoints
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+``POST /api/v1/users/created``
+    New device certificate created. Force-joins the user to the Space and all three public rooms.
+    If Synapse is not yet ready, logs a warning and returns success — ``auto_join_rooms`` in
+    ``homeserver.yaml`` will join the user when they first log in via OIDC.
+
+``POST /api/v1/users/revoked``
+    Device certificate revoked. Deactivates and erases the user from Synapse (their messages
+    are removed from the server). If Synapse is not ready yet, returns success with a warning.
+
+``POST /api/v1/users/promoted``
+    User promoted to admin in Deploy App. Sets the user's power level to 100 in the Space and
+    all public rooms, then force-joins them to the admin channel.
+    If Synapse is not yet ready, the action is queued (see "Deferred queue").
+
+``POST /api/v1/users/demoted``
+    User demoted from admin. Resets power level to 0 in the Space and public rooms, and kicks
+    the user from the admin channel.
+    If Synapse is not yet ready, the action is queued (see "Deferred queue").
+
+``PUT /api/v1/users/updated``
+    Callsign updated. No-op — a callsign change requires a new Matrix account and is not
+    handled automatically.
+
+Deferred queue
+^^^^^^^^^^^^^^
+
+Because Synapse takes time to start, ``/promoted`` and ``/demoted`` calls can arrive before
+``app.state.rooms`` is set. In that case the uid and action (``"promote"`` or ``"demote"``) are
+stored in ``app.state.pending_promotions``. After startup completes and rooms are exposed, the
+queue is drained in order. If a user is promoted and then demoted before Synapse is ready, only
+the last action survives (the dict key is overwritten).
+
+Configuration
+^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+
+   * - Environment variable
+     - Default
+     - Description
+   * - ``SYNAPSE_URL``
+     - ``http://synapse:8008``
+     - Internal URL of the Synapse homeserver
+   * - ``SYNAPSE_REGISTRATION_SECRET``
+     - *(required)*
+     - Shared secret for bot registration (HMAC-SHA1)
+   * - ``SYNAPSE_BOT_USERNAME``
+     - ``matrixrmapi-bot``
+     - Local part of the admin bot Matrix user
+   * - ``SYNAPSE_TOKEN_FILE``
+     - ``/data/persistent/synapse_admin_token``
+     - File where the bot's access token is cached between restarts
+   * - ``SERVER_DOMAIN``
+     - *(from kraftwerk manifest)*
+     - Matrix server_name; derived automatically from the product DNS label
+
 Docker
 ------
 
