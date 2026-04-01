@@ -10,7 +10,7 @@ import { PRODUCT_SHORTNAME } from "@/App";
 
 export interface FeatureStep {
   id: string;
-  title: string;       // i18n key
+  title: string; // i18n key
   description: string; // i18n key
   image?: string;
 }
@@ -22,7 +22,12 @@ interface FeatureGuideProps {
   steps: FeatureStep[];
 }
 
-export function FeatureGuide({ open, onClose, title, steps }: FeatureGuideProps) {
+export function FeatureGuide({
+  open,
+  onClose,
+  title,
+  steps,
+}: FeatureGuideProps) {
   const { t } = useTranslation(PRODUCT_SHORTNAME);
   const isMobile = useIsMobile();
 
