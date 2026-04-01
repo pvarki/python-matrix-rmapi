@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Dict, Optional, cast
-from unittest.mock import AsyncMock, call
+from typing import Dict, cast
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -96,6 +96,7 @@ async def test_apply_pending_error_is_caught_not_raised() -> None:
 
 @pytest.mark.asyncio
 async def test_apply_pending_empty_queue_is_noop() -> None:
+    """Empty pending dict must be a no-op — no Synapse calls made."""
     synapse = _mock_synapse()
     await _apply_pending(cast(SynapseAdmin, synapse), _ROOMS, {})
     synapse.set_power_level_in_rooms.assert_not_called()
@@ -115,7 +116,7 @@ async def test_ensure_room_returns_existing_room() -> None:
     synapse.room_id_for_alias.return_value = "!existing:example.test"
     result = await _ensure_room(cast(SynapseAdmin, synapse), "General", "#general:example.test", False, False)
     assert result == "!existing:example.test"
-    synapse.create_room.assert_not_called()  # type: ignore[union-attr]
+    synapse.create_room.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -126,4 +127,4 @@ async def test_ensure_room_creates_new_room() -> None:
     synapse.create_room.return_value = "!new:example.test"
     result = await _ensure_room(cast(SynapseAdmin, synapse), "General", "#general:example.test", False, False)
     assert result == "!new:example.test"
-    synapse.create_room.assert_called_once()  # type: ignore[union-attr]
+    synapse.create_room.assert_called_once()

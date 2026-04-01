@@ -36,7 +36,7 @@ interface OnboardingStep {
   description: string;
   image: string;
   mobileImage?: string;
-  customComponent?: React.ComponentType;
+  customComponent?: React.ComponentType<{ platform: Platform }>;
 }
 
 interface OnboardingGroup {
@@ -46,7 +46,7 @@ interface OnboardingGroup {
 
 const ONBOARDING_GROUPS: OnboardingGroup[] = [
   {
-    platforms: [Platform.Windows, Platform.Linux],
+    platforms: [Platform.Windows, Platform.Linux, Platform.macOS],
     steps: [
       {
         id: "desktop-intro",
@@ -361,6 +361,14 @@ export function OnboardingHandler() {
                   />{" "}
                   {t("platform.ios")}
                 </SelectItem>
+                <SelectItem value={Platform.macOS}>
+                  <img
+                    src={`/ui/${PRODUCT_SHORTNAME}/apple.svg`}
+                    className="h-4 inline mr-2"
+                    alt=""
+                  />{" "}
+                  {t("platform.macos")}
+                </SelectItem>
                 <SelectItem value={Platform.Windows}>
                   <img
                     src={`/ui/${PRODUCT_SHORTNAME}/windows.svg`}
@@ -421,7 +429,7 @@ export function OnboardingHandler() {
           {t(step.description)}
           {CustomComponent && (
             <div className="mt-4">
-              <CustomComponent />
+              <CustomComponent platform={platform} />
             </div>
           )}
         </div>
