@@ -48,17 +48,17 @@ _ROOM_TOPICS: Dict[str, str] = {
 async def _wait_for_synapse(synapse_url: str, retries: int = 60, interval: float = 5.0) -> bool:
     """Poll Synapse /health until it responds 200. Returns True on success."""
     LOGGER.info("Waiting for Synapse at %s ...", synapse_url)
-    for attempt in range(retries):
-        try:
-            async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient() as client:
+        for attempt in range(retries):
+            try:
                 resp = await client.get(f"{synapse_url}/health", timeout=5.0)
                 if resp.status_code == 200:
                     LOGGER.info("Synapse is ready")
                     return True
-        except Exception:  # pylint: disable=broad-except  # nosec B110
-            pass
-        if attempt < retries - 1:
-            await asyncio.sleep(interval)
+            except Exception:  # pylint: disable=broad-except  # nosec B110
+                pass
+            if attempt < retries - 1:
+                await asyncio.sleep(interval)
     LOGGER.error("Synapse not reachable after %d attempts — integration disabled", retries)
     return False
 
@@ -263,7 +263,7 @@ def get_app() -> FastAPI:
     manifest = get_manifest()
     rm_base = manifest["rasenmaeher"]["init"]["base_uri"]
     deployment_domain_regex = rm_base.replace(".", r"\.").replace("https://", r"https://(.*\.)?")
-    LOGGER.info("deployment_domain_regex={}".format(deployment_domain_regex))
+    LOGGER.debug("deployment_domain_regex=%s", deployment_domain_regex)
 
     app = FastAPI(
         docs_url="/api/docs",
@@ -282,6 +282,6 @@ def get_app() -> FastAPI:
     app.include_router(router=all_routers_v2, prefix="/api/v2")
     app.state.pending_promotions = {}  # Dict[str, str]
 
-    LOGGER.info("API init done, setting log verbosity to '{}'.".format(logging.getLevelName(LOG_LEVEL)))
+    LOGGER.info("API init done, setting log verbosity to '%s'.", logging.getLevelName(LOG_LEVEL))
 
     return app
