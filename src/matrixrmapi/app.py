@@ -63,8 +63,13 @@ async def _wait_for_synapse(synapse_url: str, retries: int = 60, interval: float
     return False
 
 
-async def _acquire_bot_token(synapse: SynapseAdmin) -> bool:
-    """Acquire the admin bot token using a file lock for worker coordination."""
+async def _acquire_bot_token(synapse: SynapseAdmin) -> Tuple[bool, bool]:
+    """Acquire the admin bot token using a file lock for worker coordination.
+
+    Returns ``(success, is_init_worker)``.  Only the init worker should run
+    room creation and configuration; follower workers merely load the token
+    and then derive existing room IDs.
+    """
     lock_path = SYNAPSE_TOKEN_FILE.parent / "synapse_init.lock"
     lock = filelock.FileLock(str(lock_path))
 
@@ -76,12 +81,12 @@ async def _acquire_bot_token(synapse: SynapseAdmin) -> bool:
         registration_secret = SYNAPSE_REGISTRATION_SECRET
         await synapse.setup(registration_secret, SYNAPSE_BOT_USERNAME, SYNAPSE_TOKEN_FILE)
         del registration_secret
-        return True
+        return True, True
     except filelock.Timeout:
         LOGGER.warning("Another worker is initialising the Synapse bot, waiting ...")
     except Exception as exc:  # pylint: disable=broad-except
         LOGGER.error("Bot token acquisition failed: %s", exc)
-        return False
+        return False, False
     finally:
         if acquired:
             lock.release()
@@ -93,15 +98,15 @@ async def _acquire_bot_token(synapse: SynapseAdmin) -> bool:
         await asyncio.sleep(2)
     else:
         LOGGER.error("Token file never appeared after waiting — integration disabled")
-        return False
+        return False, False
 
     # Load and validate the token written by the init worker
     try:
         await synapse.setup("", SYNAPSE_BOT_USERNAME, SYNAPSE_TOKEN_FILE)
-        return True
+        return True, False
     except Exception as exc:  # pylint: disable=broad-except
         LOGGER.error("Failed to load bot token from file: %s", exc)
-        return False
+        return False, False
 
 
 async def _ensure_room(synapse: SynapseAdmin, name: str, alias: str, is_space: bool, is_private: bool) -> str:
@@ -198,7 +203,8 @@ async def _synapse_startup(app: FastAPI) -> None:
 
     synapse = SynapseAdmin(SYNAPSE_URL, domain)
 
-    if not await _acquire_bot_token(synapse):
+    ok, is_init = await _acquire_bot_token(synapse)
+    if not ok:
         await synapse.close()
         return
 
@@ -210,10 +216,15 @@ async def _synapse_startup(app: FastAPI) -> None:
         LOGGER.error("Room setup failed: %s", exc)
         return
 
-    try:
-        await _configure_rooms_state(synapse, room_ids, deployment)
-    except Exception as exc:  # pylint: disable=broad-except
-        LOGGER.error("Room configuration failed (rooms still usable): %s", exc)
+    if is_init:
+        # Only the init worker applies state configuration to avoid redundant
+        # duplicate PUTs from every worker on every restart.
+        try:
+            await _configure_rooms_state(synapse, room_ids, deployment)
+        except Exception as exc:  # pylint: disable=broad-except
+            LOGGER.error("Room configuration failed (rooms still usable): %s", exc)
+    else:
+        LOGGER.info("Follower worker: skipping room state configuration (handled by init worker)")
 
     # Expose rooms after configuration — prevents /promoted from racing with
     # _configure_rooms_state's power-level read-modify-write on the space.
@@ -222,10 +233,12 @@ async def _synapse_startup(app: FastAPI) -> None:
     LOGGER.info("Synapse rooms ready: %s", room_ids)
 
     # Apply any promotions/demotions that arrived while rooms were not yet set.
-    pending: Dict[str, str] = getattr(app.state, "pending_promotions", {})
+    # Snapshot and clear atomically (no await between) so any new requests that
+    # arrive during _apply_pending go into the now-empty dict, not the snapshot.
+    pending: Dict[str, str] = dict(app.state.pending_promotions)
+    app.state.pending_promotions.clear()
     if pending:
         LOGGER.info("Processing %d deferred promotion(s)/demotion(s)", len(pending))
-        app.state.pending_promotions = {}
         await _apply_pending(synapse, room_ids, pending)
 
 
@@ -267,6 +280,7 @@ def get_app() -> FastAPI:
     )
     app.include_router(router=all_routers, prefix="/api/v1")
     app.include_router(router=all_routers_v2, prefix="/api/v2")
+    app.state.pending_promotions = {}  # Dict[str, str]
 
     LOGGER.info("API init done, setting log verbosity to '{}'.".format(logging.getLevelName(LOG_LEVEL)))
 

@@ -106,9 +106,7 @@ async def user_promoted(
     synapse = _synapse(request)
     rooms = _rooms(request)
     if synapse is None or rooms is None:
-        pending: Dict[str, str] = getattr(request.app.state, "pending_promotions", {})
-        pending[uid] = "promote"
-        request.app.state.pending_promotions = pending
+        request.app.state.pending_promotions[uid] = "promote"
         LOGGER.info("Queued deferred promotion for %s (Synapse not ready yet)", uid)
         return OperationResultResponse(success=True)
     try:
@@ -138,9 +136,7 @@ async def user_demoted(
     synapse = _synapse(request)
     rooms = _rooms(request)
     if synapse is None or rooms is None:
-        pending: Dict[str, str] = getattr(request.app.state, "pending_promotions", {})
-        pending[uid] = "demote"
-        request.app.state.pending_promotions = pending
+        request.app.state.pending_promotions[uid] = "demote"
         LOGGER.info("Queued deferred demotion for %s (Synapse not ready yet)", uid)
         return OperationResultResponse(success=True)
     try:
