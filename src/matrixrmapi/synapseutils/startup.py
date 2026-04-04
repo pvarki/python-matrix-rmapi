@@ -18,7 +18,7 @@ from ..config import (
     get_manifest,
     get_server_domain,
 )
-from ..types import AdminAction
+from ..types import AdminAction, CALL_EVENTS_DEFAULT_LEVEL
 from .synapse_admin import SynapseAdmin
 
 LOGGER = logging.getLogger(__name__)
@@ -165,7 +165,7 @@ async def configure_rooms_state(synapse: SynapseAdmin, rooms: Dict[str, str], de
         await synapse.set_room_state(room_id, "m.room.name", {"name": name_by_key[key]})
         if key == "space":
             await synapse.set_room_state(room_id, "m.room.join_rules", {"join_rule": "invite"})
-            # Allow all space members to add child rooms (lower m.space.child to 0)
+            # Allow space members to add child rooms and create new rooms in the space
             levels = await synapse.get_power_levels(room_id)
             events_levels = dict(levels.get("events", {}))
             events_levels["m.space.child"] = 0
@@ -174,6 +174,12 @@ async def configure_rooms_state(synapse: SynapseAdmin, rooms: Dict[str, str], de
             continue
         await synapse.set_room_state(room_id, "m.room.encryption", {"algorithm": "m.megolm.v1.aes-sha2"})
         await synapse.set_room_state(room_id, "m.room.history_visibility", {"history_visibility": "joined"})
+        # Ensure regular users can start calls (idempotent — safe to re-apply)
+        levels = await synapse.get_power_levels(room_id)
+        events_levels = dict(levels.get("events", {}))
+        events_levels.update(CALL_EVENTS_DEFAULT_LEVEL)
+        levels["events"] = events_levels
+        await synapse.set_room_state(room_id, "m.room.power_levels", levels)
         if key != "admin":
             await synapse.set_room_state(
                 room_id,

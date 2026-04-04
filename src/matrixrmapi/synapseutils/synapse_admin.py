@@ -14,6 +14,8 @@ from urllib.parse import quote
 
 import httpx
 
+from ..types import CALL_EVENTS_DEFAULT_LEVEL
+
 LOGGER = logging.getLogger(__name__)
 
 MATRIX_LOCALPART_RE = re.compile(r"^[a-z0-9._\-=/+]+$")
@@ -190,8 +192,12 @@ class SynapseAdmin:
             body["creation_content"] = {"type": "m.space"}
         # Set bot to power level 200 so it can always demote admins (who are at 100).
         # Matrix spec: you cannot lower a user at power level >= your own.
+        # Explicitly allow call events at level 0 so normal users can start calls.
         if self._bot_user_id:
-            body["power_level_content_override"] = {"users": {self._bot_user_id: 200}}
+            body["power_level_content_override"] = {
+                "users": {self._bot_user_id: 200},
+                "events": dict(CALL_EVENTS_DEFAULT_LEVEL),
+            }
 
         resp = await self._client.post(
             f"{self._url}/_matrix/client/v3/createRoom",
