@@ -26,19 +26,19 @@ def comes_from_rm(request: Request) -> None:
         raise HTTPException(status_code=403)
 
 
-def _synapse(request: Request) -> Optional[SynapseAdmin]:
+def get_synapse(request: Request) -> Optional[SynapseAdmin]:
     """Return SynapseAdmin from app state, or None if not yet ready."""
     val: Optional[SynapseAdmin] = getattr(request.app.state, "synapse", None)
     return val
 
 
-def _rooms(request: Request) -> Optional[Dict[str, str]]:
+def get_rooms(request: Request) -> Optional[Dict[str, str]]:
     """Return room IDs dict from app state, or None if not yet ready."""
     val: Optional[Dict[str, str]] = getattr(request.app.state, "rooms", None)
     return val
 
 
-def _public_room_ids(rooms: Dict[str, str]) -> list[str]:
+def public_room_ids(rooms: Dict[str, str]) -> list[str]:
     """Room IDs for the space + the three public rooms (not admin channel)."""
     return [rooms[k] for k in ("space", "general", "helpdesk", "offtopic") if k in rooms]
 
@@ -50,8 +50,8 @@ async def user_created(
 ) -> OperationResultResponse:
     """New device cert created — force-join user to space and public rooms."""
     comes_from_rm(request)
-    synapse = _synapse(request)
-    rooms = _rooms(request)
+    synapse = get_synapse(request)
+    rooms = get_rooms(request)
     if synapse is None or rooms is None:
         LOGGER.warning("Synapse not ready; skipping room joins for %s (auto_join_rooms will handle it)", user.callsign)
         return OperationResultResponse(success=True)
@@ -60,7 +60,7 @@ async def user_created(
     except ValueError as exc:
         LOGGER.error("Invalid callsign for Matrix: %s", exc)
         return OperationResultResponse(success=False)
-    for room_id in _public_room_ids(rooms):
+    for room_id in public_room_ids(rooms):
         await synapse.force_join(room_id, uid)
     LOGGER.info("Force-joined %s to public rooms", uid)
     return OperationResultResponse(success=True)
@@ -73,7 +73,7 @@ async def user_revoked(
 ) -> OperationResultResponse:
     """Device cert revoked — deactivate and erase user from Synapse."""
     comes_from_rm(request)
-    synapse = _synapse(request)
+    synapse = get_synapse(request)
     if synapse is None:
         LOGGER.warning("Synapse not ready; cannot deactivate %s", user.callsign)
         return OperationResultResponse(success=True)
@@ -96,15 +96,15 @@ async def _apply_admin_action(request: Request, uid: str, action: str) -> Operat
 
     *action* must be ``"promote"`` or ``"demote"``.
     """
-    synapse = _synapse(request)
-    rooms = _rooms(request)
+    synapse = get_synapse(request)
+    rooms = get_rooms(request)
     if synapse is None or rooms is None:
         request.app.state.pending_promotions[uid] = action
         LOGGER.info("Queued deferred %s for %s (Synapse not ready yet)", action, uid)
         return OperationResultResponse(success=True)
     try:
         level = 100 if action == "promote" else 0
-        await synapse.set_power_level_in_rooms(_public_room_ids(rooms), uid, level)
+        await synapse.set_power_level_in_rooms(public_room_ids(rooms), uid, level)
         admin_id = rooms.get("admin")
         if admin_id:
             if action == "promote":
