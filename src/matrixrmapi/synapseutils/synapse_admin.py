@@ -16,13 +16,13 @@ import httpx
 
 LOGGER = logging.getLogger(__name__)
 
-_MATRIX_LOCALPART_RE = re.compile(r"^[a-z0-9._\-=/+]+$")
+MATRIX_LOCALPART_RE = re.compile(r"^[a-z0-9._\-=/+]+$")
 
 
 def matrix_user_id(callsign: str, server_domain: str) -> str:
     """Build @localpart:domain from callsign. Raises ValueError for invalid callsigns."""
     localpart = callsign.lower()
-    if not _MATRIX_LOCALPART_RE.match(localpart):
+    if not MATRIX_LOCALPART_RE.match(localpart):
         raise ValueError(f"Callsign {callsign!r} produces invalid Matrix localpart: {localpart!r}")
     return f"@{localpart}:{server_domain}"
 

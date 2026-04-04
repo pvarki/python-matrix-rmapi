@@ -15,12 +15,12 @@ import pytest
 from matrixrmapi.synapseutils.synapse_admin import SynapseAdmin, matrix_user_id
 
 # httpx.Response needs a request object to call raise_for_status() cleanly.
-_FAKE_REQUEST = httpx.Request("POST", "http://synapse.test/fake")
+FAKE_REQUEST = httpx.Request("POST", "http://synapse.test/fake")
 
 
 def _fake(status: int, body: Dict[str, Any]) -> httpx.Response:
     """Build a minimal fake httpx.Response."""
-    return httpx.Response(status, json=body, request=_FAKE_REQUEST)
+    return httpx.Response(status, json=body, request=FAKE_REQUEST)
 
 
 def _make_synapse() -> SynapseAdmin:

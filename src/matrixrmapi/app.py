@@ -31,7 +31,7 @@ from .types import AdminAction
 LOGGER = logging.getLogger(__name__)
 
 # (key, alias_suffix, display_name, is_space, is_private)
-_ROOMS_CONFIG: List[Tuple[str, str, str, bool, bool]] = [
+ROOMS_CONFIG: List[Tuple[str, str, str, bool, bool]] = [
     ("space", "{d}-space", "{d}", True, False),
     ("admin", "{d}-admin", "Admin channel", False, True),
     ("general", "{d}-general", "98-General-for-all", False, False),
@@ -39,7 +39,7 @@ _ROOMS_CONFIG: List[Tuple[str, str, str, bool, bool]] = [
     ("offtopic", "{d}-offtopic", "Off topic", False, False),
 ]
 
-_ROOM_TOPICS: Dict[str, str] = {
+ROOM_TOPICS: Dict[str, str] = {
     "general": "Work discussion that does not fit any other room.",
     "helpdesk": "Report issues and get help from here.",
     "offtopic": "Everything that is not about the topics or work.",
@@ -126,7 +126,7 @@ async def _ensure_rooms(synapse: SynapseAdmin, deployment: str, domain: str) -> 
     room_ids: Dict[str, str] = {}
     space_id: Optional[str] = None
 
-    for key, alias_tpl, name_tpl, is_space, is_private in _ROOMS_CONFIG:
+    for key, alias_tpl, name_tpl, is_space, is_private in ROOMS_CONFIG:
         alias = f"#{alias_tpl.format(d=deployment)}:{domain}"
         room_ids[key] = await _ensure_room(synapse, name_tpl.format(d=deployment), alias, is_space, is_private)
         if is_space:
@@ -165,7 +165,7 @@ async def _configure_rooms_state(synapse: SynapseAdmin, rooms: Dict[str, str], d
 
     All state events are idempotent in Matrix — safe to re-apply on every restart.
     """
-    name_by_key = {key: name_tpl.format(d=deployment) for key, _, name_tpl, _, _ in _ROOMS_CONFIG}
+    name_by_key = {key: name_tpl.format(d=deployment) for key, _, name_tpl, _, _ in ROOMS_CONFIG}
     space_id = rooms["space"]
     LOGGER.info("Applying room state configuration (idempotent)")
     for key, room_id in rooms.items():
@@ -187,7 +187,7 @@ async def _configure_rooms_state(synapse: SynapseAdmin, rooms: Dict[str, str], d
                 "m.room.join_rules",
                 {"join_rule": "restricted", "allow": [{"type": "m.room_membership", "room_id": space_id}]},
             )
-        topic = _ROOM_TOPICS.get(key)
+        topic = ROOM_TOPICS.get(key)
         if topic:
             await synapse.set_room_state(room_id, "m.room.topic", {"topic": topic})
     LOGGER.info("Room state configuration applied")
