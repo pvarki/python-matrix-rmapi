@@ -64,6 +64,10 @@
           "title": "Recon-huone",
           "description": "Recon-huoneeseen kutsu vähintään joukkosi johtajat ja alijohtajat. Kerro kanavalla tiedustelu- ja vihollishavainnoista."
         },
+        "guard": {
+          "title": "Guard-huone",
+          "description": "Guard-huoneen kannattaa olla sellainen, että siihen voi Spacesta liittyä vapaasti. Vartio- ja partiotehtävän aloittavat taistelijat liittyvät tehtävänsä ajaksi, ja näin komentopaikalla on suora yhteys heihin."
+        },
         "others": {
           "title": "Muut huonesuositukset",
           "description": "Muita huonesuosituksia on esimerkiksi Guard-huone, mihin vartio- ja partiotehtäviä suorittavat liittyvät tehtävän ajaksi, sekä Call for Fires ja Fires Management-huoneet tulenjohtoa ja tulenkäytön koordinointia varten."

@@ -7,32 +7,35 @@
     "label": "Matrix-hemserverns adress",
     "description": "Ange adressen nedan i din Matrix-klient som hemserver.",
     "copyButton": "Kopiera"
-  },
-  "featureguides": {
+  },  "featureguides": {
     "title": "Funktionsguider",
     "messaging": {
-      "button": "Text- och röstmeddelanden, samtal och videomöten",
+      "button": "Meddelanden, röstmeddelanden, samtal och videokonferenser",
       "title": "Meddelanden och samtal i Matrix",
       "steps": {
         "intro": {
           "title": "Meddelanden i Element",
-          "description": "Element stöder textmeddelanden, röstmeddelanden, röst- och videosamtal samt videomöten — allt i en app. Dessa fungerar i vilket rum eller direktmeddelandekonversation som helst."
+          "description": "Element stöder textmeddelanden, röstmeddelanden, röst- och videosamtal samt videokonferenser. Dessa fungerar i vilket rum eller direktmeddelandekonversation som helst."
         },
         "space": {
-          "title": "Ditt Space och dina rum",
-          "description": "När du ansluter läggs du automatiskt till i ett Space med förskapade rum: Allmänt, Helpdesk och Fritid. Dessa är dina startpunkter för teamkommunikation."
+          "title": "Space och rum",
+          "description": "Du blir automatiskt medlem i denna servers Space. Spacet inkluderar alla servermedlemmar och har färdiga rum så att du kan börja kommunicera direkt."
         },
         "rooms": {
-          "title": "Kommunikation i rum",
-          "description": "Skicka meddelanden i vilket rum som helst eller starta direktmeddelanden med andra medlemmar. Du kan också skapa nya rum för specifika ämnen för att hålla diskussionerna organiserade."
+          "title": "Meddelanden i rum",
+          "description": "Skicka meddelanden i vilket rum som helst eller starta ett direktmeddelande med andra medlemmar. Du kan också skapa nya rum som antingen är synliga för alla Space-medlemmar eller enbart tillgängliga via inbjudan."
         },
         "calls": {
           "title": "Röst- och videosamtal",
-          "description": "Starta ett röst- eller videosamtal direkt från vilket rum eller direktmeddelande som helst — praktiskt för snabba konversationer utan att behöva boka ett möte."
+          "description": "Starta ett röst- eller videosamtal direkt från vilket rum eller direktmeddelande som helst — smidigt för snabba samtal utan att behöva ordna ett möte."
         },
         "meetings": {
-          "title": "Videomöten",
-          "description": "Element stöder gruppmöten med video. Starta ett möte från vilket rum som helst för att samla ditt team för en briefing eller ett samarbetssession."
+          "title": "Gruppvideosamtal",
+          "description": "Element stöder högkvalitativa gruppvideosamtal i rum — helt jämförbart med Microsoft Teams, Skype eller andra liknande tjänster."
+        },
+        "encryption": {
+          "title": "Kryptering",
+          "description": "En nyckelfunktion i Matrix är stark ände-till-ände-kryptering, vilket innebär att utomstående, inklusive servern, inte kan komma åt dina privata meddelanden eller gruppmeddelanden."
         }
       }
     },
@@ -41,24 +44,40 @@
       "title": "Använda Matrix i en enhet",
       "steps": {
         "setup": {
-          "title": "Konfigurera din arbetsyta",
-          "description": "Skapa rum i ditt Space för de ämnen din enhet behöver — operationer, planering, logistik eller annat. Rum kan begränsas till Space-medlemmar så att bara rätt personer har åtkomst."
+          "title": "Enkelt primärt meddelandeverktyg",
+          "description": "Matrix uppfyller alla meddelande- och videosamtalsbehov väl. Alla medlemmar på denna server är automatiskt medlemmar i serverns Space, vilket gör att du kan starta din grupps meddelandeverksamhet omedelbart."
         },
-        "daily": {
-          "title": "Daglig kommunikation",
-          "description": "Använd textmeddelanden för skriftlig kommunikation och röstmeddelanden för snabba ljudanteckningar när det är opraktiskt att skriva. Att hålla diskussioner i ämnesspecifika rum gör det lättare för alla att följa det som är viktigt för dem."
+        "rooms": {
+          "title": "Exempel på en bra rumsindelning",
+          "description": "Utöver de automatiskt skapade rummen rekommenderar vi att skapa till exempel följande rum och bjuda in lämpliga medlemmar till dem."
         },
-        "calls": {
-          "title": "Samtal och möten",
-          "description": "Använd röstsamtal för snabb samordning. Starta videomöten för teambriefingar eller när distanssamarbete kräver känslan av ett personligt möte."
+        "command": {
+          "title": "Command-rum",
+          "description": "Bjud in dina grupsledare till Command-kanalen. Kanalen fungerar som en radiokommandokanal — för order och bekräftelser. Den kan också användas för orderbriefingar via videokonferens."
+        },
+        "friendly": {
+          "title": "Friendly situation-rum",
+          "description": "Bjud in åtminstone dina grupsledare och ställföreträdare till Friendly situation-rummet. Kanalen används för att kommunicera uppdragets genomförandefas — var egna styrkor rör sig och hur uppdragen framskrider."
+        },
+        "recon": {
+          "title": "Recon-rum",
+          "description": "Bjud in åtminstone dina grupsledare och ställföreträdare till Recon-rummet. Använd kanalen för att kommunicera spanings- och fiendeobservationer."
+        },
+        "guard": {
+          "title": "Guard-rum",
+          "description": "Guard-rummet bör vara inställt så att vem som helst kan gå med fritt från Spacet. Soldater som påbörjar vakt- eller patrulluppdrag ansluter under uppdragets varaktighet, vilket ger kommandoplatsen en direkt förbindelse till dem."
+        },
+        "others": {
+          "title": "Övriga rumsrekommendationer",
+          "description": "Andra rekommenderade rum inkluderar ett Call for Fires och Fires Management-rum för eldledning och eldsamordning."
         },
         "users": {
-          "title": "Hantera användare",
-          "description": "Administratörer kan hantera rummedlemskap och åtkomst. Användare som befordras till administratör i Deploy App får automatiskt förhöjd åtkomst i Space och läggs till i administratörskanalen."
+          "title": "Användarhantering",
+          "description": "En användare som är inställd som administratör i Deploy App får automatiskt administratörsrättigheter till Spacet och dess rum, och läggs till i adminrummet. En användare som tas bort från Deploy App förlorar åtkomsten till Matrix."
         },
         "federation": {
-          "title": "Samarbeta med andra Matrix-servrar",
-          "description": "Som standard kan du bjuda in användare från andra Matrix-hemservrar till dina rum. Detta möjliggör interoperabilitet med allierade eller partnerorganisationer som också använder Matrix."
+          "title": "Samverkan med andra Matrix-servrar",
+          "description": "Som standard kan du bjuda in användare från andra Matrix-servrar till dina rum. Detta möjliggör samverkan med andra grupper som använder Deploy App eller till och med NATO-allierade som också använder Matrix, till exempel via NI2CE-applikationen."
         }
       }
     }

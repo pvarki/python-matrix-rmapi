@@ -4,35 +4,39 @@
     "copied": "Copied to clipboard!"
   },
   "homepage": {
-    "label": "Matrix homeserver URL",
-    "description": "Enter the address below into your Matrix-client as the homeserver.",
+    "label": "Matrix home server address",
+    "description": "Enter the address below as your home server in your Matrix application.",
     "copyButton": "Copy"
   },
   "featureguides": {
     "title": "Feature guides",
     "messaging": {
-      "button": "Text & voice messages, calls and video meetings",
+      "button": "Messages, voice messages, calls and video conferences",
       "title": "Messaging and calls in Matrix",
       "steps": {
         "intro": {
           "title": "Messaging in Element",
-          "description": "Element supports text messages, voice messages, voice calls and video meetings — all in one app. These work in any room or direct message conversation."
+          "description": "Element supports text messages, voice messages, voice and video calls, and video conferences. These work in any room or direct message conversation."
         },
         "space": {
-          "title": "Your Space and rooms",
-          "description": "When you join, you are automatically added to a Space with pre-created rooms: General, Helpdesk and Off-topic. These are your starting points for team communication."
+          "title": "Space and rooms",
+          "description": "You will automatically join this server's Space as a member. The Space includes all server members and has pre-created rooms so you can start communicating right away."
         },
         "rooms": {
-          "title": "Talking in rooms",
-          "description": "Send messages in any room or start direct messages with other members. You can also create new rooms for specific topics to keep discussions organised."
+          "title": "Messaging in rooms",
+          "description": "Send messages in any room or start a direct message with other members. You can also create new rooms that are either discoverable by all Space members or join-by-invitation only."
         },
         "calls": {
           "title": "Voice and video calls",
-          "description": "Start a voice or video call directly from any room or direct message — useful for quick conversations without scheduling a meeting."
+          "description": "Start a voice or video call directly from any room or direct message — convenient for quick conversations without setting up a meeting."
         },
         "meetings": {
-          "title": "Video meetings",
-          "description": "Element supports group video meetings. Start one from any room to bring your team together for a briefing or a collaborative session."
+          "title": "Group video call",
+          "description": "Element supports high-quality group video calls in rooms — fully equivalent capability to Microsoft Teams, Skype, or other similar services."
+        },
+        "encryption": {
+          "title": "Encryption",
+          "description": "A key feature of Matrix is strong end-to-end encryption, meaning outsiders, including the server, cannot access your private messages or group messages."
         }
       }
     },
@@ -41,24 +45,40 @@
       "title": "Using Matrix in a unit",
       "steps": {
         "setup": {
-          "title": "Setting up your workspace",
-          "description": "Create rooms in your Space for the topics your unit needs — operations, planning, logistics, or anything else. Rooms can be restricted to Space members so only the right people have access."
+          "title": "Easy primary messaging tool",
+          "description": "Matrix fulfills all messaging and video call needs well. All members of this server are automatically members of your server's Space, allowing you to start communicating with your team immediately."
         },
-        "daily": {
-          "title": "Day-to-day communication",
-          "description": "Use text messages for written communication and voice messages for quick audio notes when typing is inconvenient. Keeping discussions in topic-specific rooms helps everyone follow what matters to them."
+        "rooms": {
+          "title": "Example of a good room structure",
+          "description": "In addition to the automatically created rooms, we recommend creating the following rooms, for example, and inviting the appropriate members to them. The core idea is to think the Rooms as radio channels."
         },
-        "calls": {
-          "title": "Calls and meetings",
-          "description": "Use voice calls for quick coordination. Start video meetings for team briefings or when remote collaboration needs a face-to-face feel."
+        "command": {
+          "title": "Command room",
+          "description": "Invite your team leaders to the Command channel. The channel functions like a radio command channel — it's for orders and their acknowledgements. It can also be used for briefings via video conference."
+        },
+        "friendly": {
+          "title": "Friendly situation room",
+          "description": "Invite at least your team leaders and deputy leaders to the Friendly situation room. The channel is used to communicate the execution of your mission — where friendlies are moving and how task execution is progressing."
+        },
+        "recon": {
+          "title": "Recon room",
+          "description": "Invite at least your team leaders and deputy leaders to the Recon room. Use the channel to communicate reconnaissance and enemy observations."
+        },
+        "guard": {
+          "title": "Guard room",
+          "description": "The Guard room should be set up so that anyone can freely join from the Space. Operators starting guard duties or patrol duties join for the duration of their task, giving the command post a direct line to them."
+        },
+        "others": {
+          "title": "Other room recommendations",
+          "description": "Other recommended rooms include, among others, a Call for Fires and Fires Management rooms for fire direction and fire coordination."
         },
         "users": {
-          "title": "Managing users",
-          "description": "Admins can manage room membership and access. Users promoted to admin in Deploy App automatically receive elevated access in the Space and are added to the admin channel."
+          "title": "User management",
+          "description": "A user set as an administrator in the Deploy App automatically receives administrator rights to the Space and its rooms, and is added to the admin room. A user removed from the Deploy App loses access to Matrix."
         },
         "federation": {
-          "title": "Working with other Matrix servers",
-          "description": "By default, you can invite users from other Matrix homeservers to your rooms. This allows interoperability with allies or partner organisations that also run Matrix."
+          "title": "Cooperation with other Matrix servers",
+          "description": "By default, you can invite users from other Matrix servers to your rooms. This enables cooperation with other teams using Deploy App or ti NATO allies who also use Matrix, for example through the NI2CE application."
         }
       }
     }
@@ -66,74 +86,74 @@
   "onboarding": {
     "back": "Back",
     "clickToEnlarge": "Click to enlarge",
-    "completion": "Onboarding Completed!",
-    "completionDesc": "You're all set and ready to operate at full capacity.",
+    "completion": "Onboarding complete!",
+    "completionDesc": "Everything is ready and you are good to go.",
     "finish": "Finish",
     "imageMissing": "Image not available",
     "next": "Next",
-    "of": "of",
-    "progressSaved": "Your onboarding progress has been saved.",
+    "of": "/",
+    "progressSaved": "Onboarding progress has been saved.",
     "review": "Review onboarding",
     "step": "Step",
     "steps": {
       "desktop-intro": {
         "title": "Welcome to Matrix",
-        "description": "This onboarding uses the Element-client, but you can use almost any Matrix Client. The steps you need to take should be somewhat similar in other clients."
+        "description": "This guide uses the Element application, but you can use any Matrix application. The steps are similar in other applications as well."
       },
       "setup": {
         "title": "Prerequisites",
-        "description": "Copy the homeserver address (1). You can return to the guide always from the bottom right corner.(2)"
+        "description": "Copy the home server address (1). You can return to this guide at any time from the bottom right corner (2)."
       },
       "desktop-step-1": {
-        "title": "Log into Element - 1",
-        "description": "Open Element and select \"Sign in\"."
+        "title": "Log in to Element - 1",
+        "description": "Open Element and select \"Log in\"."
       },
       "desktop-step-2": {
-        "title": "Log into Element - 2",
-        "description": "Press \"Edit\" on the homeserver address."
+        "title": "Log in to Element - 2",
+        "description": "Press \"Edit\" next to the home server address."
       },
       "desktop-step-3": {
-        "title": "Log into Element - 3",
+        "title": "Log in to Element - 3",
         "description": "Paste the server address you copied earlier. Press \"Continue\"."
       },
       "desktop-step-4": {
-        "title": "Log into Element - 4",
-        "description": "Press \"Continue with Keycloak\". Continue in your browser, which should ask your for your mTLS-certificate. Authenticate with mTLS."
+        "title": "Log in to Element - 4",
+        "description": "Press \"Continue with Keycloak\". Continue in your browser, which should prompt for your mTLS certificate a few times. Authenticate with your mTLS certificate."
       },
       "desktop-step-5": {
-        "title": "Element Homepage",
-        "description": "You are now logged in and able to use Matrix. You can see or create spaces on the left (1). You can see and create your direct messages near the middle (2)."
+        "title": "Element home view",
+        "description": "You are now logged in and can use Matrix. You can view or create Spaces from the sidebar (1). You can see and create direct messages from the left panel (2)."
       },
       "mobile-intro": {
         "title": "Welcome to Matrix",
-        "description": "This onboarding uses the Element Classic-client, but you can use almost any Matrix Client. The steps you need to take should be somewhat similar in other clients."
+        "description": "This guide uses the Element Classic application, but you can use almost any Matrix application. The steps are similar in other applications as well."
       },
       "mobile-step-1": {
-        "title": "Log into Element Classic - 1",
+        "title": "Log in to Element Classic - 1",
         "description": "Open Element and select \"Sign in\"."
       },
       "mobile-step-2": {
-        "title": "Log into Element Classic - 2",
-        "description": "Press \"Edit\" on the homeserver address."
+        "title": "Log in to Element Classic - 2",
+        "description": "Press \"Edit\" next to the home server address."
       },
       "mobile-step-3": {
-        "title": "Log into Element Classic - 3",
+        "title": "Log in to Element Classic - 3",
         "description": "Paste the server address you copied earlier. Press \"Next\"."
       },
       "mobile-step-4": {
-        "title": "Log into Element Classic - 4",
-        "description": "Press \"Continue with Keycloak\". Continue in your browser, which should ask your for your mTLS-certificate. Authenticate with mTLS."
+        "title": "Log in to Element Classic - 4",
+        "description": "Press \"Continue with Keycloak\". Continue in your browser, which should prompt for your mTLS certificate. Authenticate with your mTLS certificate."
       },
       "mobile-step-5": {
-        "title": "Element Classic Homepage",
-        "description": "You are now logged in and able to use Matrix. You search users and rooms at the top right corner (1). You can start a chat from the bottom right corner (2)."
+        "title": "Element Classic home view",
+        "description": "You are now logged in and can use Matrix. You can search for users and rooms from the top right corner (1). You can start a conversation from the bottom right corner (2)."
       }
     },
-    "title": "Onboard to Matrix",
+    "title": "Matrix onboarding",
     "downloads": {
       "open_website": "Open download website",
-      "google_play": "Get on Google Play",
-      "app_store": "Download on the App Store"
+      "google_play": "Download from Google Play",
+      "app_store": "Download from App Store"
     }
   },
   "platform": {
