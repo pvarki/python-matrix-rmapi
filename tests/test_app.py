@@ -9,6 +9,7 @@ import pytest
 
 from matrixrmapi.app import _apply_pending, _ensure_room
 from matrixrmapi.synapseutils.synapse_admin import SynapseAdmin
+from matrixrmapi.types import AdminAction
 
 _ROOMS: Dict[str, str] = {
     "space": "!space:x",
@@ -35,7 +36,7 @@ def _mock_synapse() -> AsyncMock:
 async def test_apply_pending_promote_sets_power_and_joins_admin() -> None:
     """promote: power level 100 in public rooms, force-join admin channel."""
     synapse = _mock_synapse()
-    await _apply_pending(cast(SynapseAdmin, synapse), _ROOMS, {"@user:x": "promote"})
+    await _apply_pending(cast(SynapseAdmin, synapse), _ROOMS, {"@user:x": AdminAction.PROMOTE})
 
     synapse.set_power_level_in_rooms.assert_called_once_with(_PUBLIC_IDS, "@user:x", 100)
     synapse.force_join.assert_called_once_with("!admin:x", "@user:x")
@@ -45,7 +46,7 @@ async def test_apply_pending_promote_sets_power_and_joins_admin() -> None:
 async def test_apply_pending_demote_sets_power_and_kicks_admin() -> None:
     """demote: power level 0 in public rooms, kick from admin channel."""
     synapse = _mock_synapse()
-    await _apply_pending(cast(SynapseAdmin, synapse), _ROOMS, {"@user:x": "demote"})
+    await _apply_pending(cast(SynapseAdmin, synapse), _ROOMS, {"@user:x": AdminAction.DEMOTE})
 
     synapse.set_power_level_in_rooms.assert_called_once_with(_PUBLIC_IDS, "@user:x", 0)
     synapse.kick.assert_called_once_with("!admin:x", "@user:x")
@@ -58,7 +59,7 @@ async def test_apply_pending_multiple_users() -> None:
     await _apply_pending(
         cast(SynapseAdmin, synapse),
         _ROOMS,
-        {"@alice:x": "promote", "@bob:x": "demote"},
+        {"@alice:x": AdminAction.PROMOTE, "@bob:x": AdminAction.DEMOTE},
     )
 
     assert synapse.set_power_level_in_rooms.call_count == 2
@@ -71,7 +72,7 @@ async def test_apply_pending_no_admin_room_skips_join() -> None:
     """If admin room is missing from rooms dict, no force_join/kick is attempted."""
     synapse = _mock_synapse()
     rooms_no_admin = {k: v for k, v in _ROOMS.items() if k != "admin"}
-    await _apply_pending(cast(SynapseAdmin, synapse), rooms_no_admin, {"@user:x": "promote"})
+    await _apply_pending(cast(SynapseAdmin, synapse), rooms_no_admin, {"@user:x": AdminAction.PROMOTE})
 
     synapse.force_join.assert_not_called()
 
@@ -89,7 +90,7 @@ async def test_apply_pending_error_is_caught_not_raised() -> None:
     await _apply_pending(
         cast(SynapseAdmin, synapse),
         _ROOMS,
-        {"@alice:x": "promote", "@bob:x": "promote"},
+        {"@alice:x": AdminAction.PROMOTE, "@bob:x": AdminAction.PROMOTE},
     )
     assert synapse.set_power_level_in_rooms.call_count == 2
 

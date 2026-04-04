@@ -26,6 +26,7 @@ from .config import (
 )
 from .api import all_routers, all_routers_v2
 from .synapseutils.synapse_admin import SynapseAdmin
+from .types import AdminAction
 
 LOGGER = logging.getLogger(__name__)
 
@@ -139,24 +140,24 @@ async def _ensure_rooms(synapse: SynapseAdmin, deployment: str, domain: str) -> 
     return room_ids
 
 
-async def _apply_pending(synapse: SynapseAdmin, rooms: Dict[str, str], pending: Dict[str, str]) -> None:
+async def _apply_pending(synapse: SynapseAdmin, rooms: Dict[str, str], pending: Dict[str, AdminAction]) -> None:
     """Apply promotions/demotions that were queued while Synapse was still starting."""
     public_ids = [rooms[k] for k in ("space", "general", "helpdesk", "offtopic") if k in rooms]
     admin_id = rooms.get("admin")
     for uid, action in pending.items():
         try:
-            if action == "promote":
+            if action is AdminAction.PROMOTE:
                 await synapse.set_power_level_in_rooms(public_ids, uid, 100)
                 if admin_id:
                     await synapse.force_join(admin_id, uid)
                 LOGGER.info("Applied deferred promotion for %s", uid)
-            elif action == "demote":
+            elif action is AdminAction.DEMOTE:
                 await synapse.set_power_level_in_rooms(public_ids, uid, 0)
                 if admin_id:
                     await synapse.kick(admin_id, uid)
                 LOGGER.info("Applied deferred demotion for %s", uid)
         except Exception as exc:  # pylint: disable=broad-except
-            LOGGER.error("Failed to apply deferred %s for %s: %s", action, uid, exc)
+            LOGGER.error("Failed to apply deferred %s for %s: %s", action.value, uid, exc)
 
 
 async def _configure_rooms_state(synapse: SynapseAdmin, rooms: Dict[str, str], deployment: str) -> None:
@@ -235,7 +236,7 @@ async def _synapse_startup(app: FastAPI) -> None:
     # Apply any promotions/demotions that arrived while rooms were not yet set.
     # Snapshot and clear atomically (no await between) so any new requests that
     # arrive during _apply_pending go into the now-empty dict, not the snapshot.
-    pending: Dict[str, str] = dict(app.state.pending_promotions)
+    pending: Dict[str, AdminAction] = dict(app.state.pending_promotions)
     app.state.pending_promotions.clear()
     if pending:
         LOGGER.info("Processing %d deferred promotion(s)/demotion(s)", len(pending))
@@ -280,7 +281,7 @@ def get_app() -> FastAPI:
     )
     app.include_router(router=all_routers, prefix="/api/v1")
     app.include_router(router=all_routers_v2, prefix="/api/v2")
-    app.state.pending_promotions = {}  # Dict[str, str]
+    app.state.pending_promotions = {}  # Dict[str, AdminAction]
 
     LOGGER.info("API init done, setting log verbosity to '%s'.", logging.getLevelName(LOG_LEVEL))
 

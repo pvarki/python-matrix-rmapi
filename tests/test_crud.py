@@ -6,6 +6,7 @@ import uuid
 from fastapi.testclient import TestClient
 
 from matrixrmapi.config import get_server_domain
+from matrixrmapi.types import AdminAction
 from .conftest import APP
 
 LOGGER = logging.getLogger(__name__)
@@ -89,8 +90,8 @@ def test_promote_queues_uid_when_synapse_not_ready(rm_mtlsclient: TestClient) ->
     assert resp.json()["success"] is True
 
     uid = f"@{user['callsign'].lower()}:{get_server_domain()}"
-    pending: Dict[str, str] = getattr(APP.state, "pending_promotions", {})
-    assert pending.get(uid) == "promote"
+    pending: Dict[str, AdminAction] = getattr(APP.state, "pending_promotions", {})
+    assert pending.get(uid) is AdminAction.PROMOTE
 
 
 def test_demote_queues_uid_when_synapse_not_ready(rm_mtlsclient: TestClient) -> None:
@@ -101,8 +102,8 @@ def test_demote_queues_uid_when_synapse_not_ready(rm_mtlsclient: TestClient) -> 
     assert resp.json()["success"] is True
 
     uid = f"@{user['callsign'].lower()}:{get_server_domain()}"
-    pending: Dict[str, str] = getattr(APP.state, "pending_promotions", {})
-    assert pending.get(uid) == "demote"
+    pending: Dict[str, AdminAction] = getattr(APP.state, "pending_promotions", {})
+    assert pending.get(uid) is AdminAction.DEMOTE
 
 
 def test_demote_overwrites_pending_promote(rm_mtlsclient: TestClient) -> None:
@@ -113,5 +114,5 @@ def test_demote_overwrites_pending_promote(rm_mtlsclient: TestClient) -> None:
     rm_mtlsclient.post("/api/v1/users/promoted", json=user)
     rm_mtlsclient.post("/api/v1/users/demoted", json=user)
 
-    pending: Dict[str, str] = getattr(APP.state, "pending_promotions", {})
-    assert pending.get(uid) == "demote"
+    pending: Dict[str, AdminAction] = getattr(APP.state, "pending_promotions", {})
+    assert pending.get(uid) is AdminAction.DEMOTE

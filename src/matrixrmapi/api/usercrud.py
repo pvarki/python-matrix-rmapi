@@ -12,6 +12,7 @@ from libpvarki.schemas.product import UserCRUDRequest
 
 from ..config import get_manifest, get_server_domain
 from ..synapseutils.synapse_admin import SynapseAdmin, matrix_user_id
+from ..types import AdminAction
 
 LOGGER = logging.getLogger(__name__)
 
@@ -91,30 +92,27 @@ async def user_revoked(
     return OperationResultResponse(success=True)
 
 
-async def _apply_admin_action(request: Request, uid: str, action: str) -> OperationResultResponse:
-    """Promote or demote *uid*; queue if Synapse is not yet ready.
-
-    *action* must be ``"promote"`` or ``"demote"``.
-    """
+async def apply_admin_action(request: Request, uid: str, action: AdminAction) -> OperationResultResponse:
+    """Promote or demote *uid*; queue if Synapse is not yet ready."""
     synapse = get_synapse(request)
     rooms = get_rooms(request)
     if synapse is None or rooms is None:
         request.app.state.pending_promotions[uid] = action
-        LOGGER.info("Queued deferred %s for %s (Synapse not ready yet)", action, uid)
+        LOGGER.info("Queued deferred %s for %s (Synapse not ready yet)", action.value, uid)
         return OperationResultResponse(success=True)
     try:
-        level = 100 if action == "promote" else 0
+        level = 100 if action is AdminAction.PROMOTE else 0
         await synapse.set_power_level_in_rooms(public_room_ids(rooms), uid, level)
         admin_id = rooms.get("admin")
         if admin_id:
-            if action == "promote":
+            if action is AdminAction.PROMOTE:
                 await synapse.force_join(admin_id, uid)
             else:
                 await synapse.kick(admin_id, uid)
     except Exception as exc:  # pylint: disable=broad-except
-        LOGGER.error("Failed to %s %s: %s", action, uid, exc)
+        LOGGER.error("Failed to %s %s: %s", action.value, uid, exc)
         return OperationResultResponse(success=False)
-    LOGGER.info("%sd %s (power level %d)", action.capitalize(), uid, level)
+    LOGGER.info("%sd %s (power level %d)", action.value.capitalize(), uid, level)
     return OperationResultResponse(success=True)
 
 
@@ -130,7 +128,7 @@ async def user_promoted(
     except ValueError as exc:
         LOGGER.error("Invalid callsign for Matrix: %s", exc)
         return OperationResultResponse(success=False)
-    return await _apply_admin_action(request, uid, "promote")
+    return await apply_admin_action(request, uid, AdminAction.PROMOTE)
 
 
 @router.post("/demoted")
@@ -145,7 +143,7 @@ async def user_demoted(
     except ValueError as exc:
         LOGGER.error("Invalid callsign for Matrix: %s", exc)
         return OperationResultResponse(success=False)
-    return await _apply_admin_action(request, uid, "demote")
+    return await apply_admin_action(request, uid, AdminAction.DEMOTE)
 
 
 @router.put("/updated")
