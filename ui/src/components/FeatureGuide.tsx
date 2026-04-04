@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ImageOff } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -34,6 +39,7 @@ export function FeatureGuide({
   const [currentStep, setCurrentStep] = useState(0);
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
+  const [imageEnlarged, setImageEnlarged] = useState(false);
 
   const step = steps[currentStep];
   if (!step) return null;
@@ -43,6 +49,7 @@ export function FeatureGuide({
   const handlePrev = () => {
     setImageError(false);
     setImageLoading(true);
+    setImageEnlarged(false);
     setCurrentStep((c) => Math.max(0, c - 1));
   };
 
@@ -50,6 +57,7 @@ export function FeatureGuide({
     if (currentStep < steps.length - 1) {
       setImageError(false);
       setImageLoading(true);
+      setImageEnlarged(false);
       setCurrentStep((c) => c + 1);
     } else {
       onClose();
@@ -75,7 +83,16 @@ export function FeatureGuide({
         </div>
 
         {step.image && (
-          <div className="relative rounded-xl overflow-hidden aspect-video w-full border border-border shadow-sm bg-muted/20 shrink-0">
+          <div
+            className={cn(
+              "relative rounded-xl overflow-hidden aspect-video w-full border border-border shadow-sm bg-muted/20 shrink-0",
+              !imageError && !imageLoading && "cursor-pointer group",
+            )}
+            onClick={() =>
+              !imageError && !imageLoading && setImageEnlarged(true)
+            }
+            tabIndex={-1}
+          >
             {imageLoading && !imageError && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-8 h-8 border-2 border-primary-light border-t-transparent rounded-full animate-spin" />
@@ -144,16 +161,40 @@ export function FeatureGuide({
 
   if (isMobile === undefined) return null;
 
-  return isMobile ? (
-    <Drawer open={open} onOpenChange={handleOpenChange}>
-      <DrawerContent>{content}</DrawerContent>
-    </Drawer>
-  ) : (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] p-0 flex flex-col overflow-hidden outline-none">
-        <DialogTitle className="sr-only">{title}</DialogTitle>
-        {content}
+  const enlargedImageModal = (
+    <Dialog open={imageEnlarged} onOpenChange={setImageEnlarged}>
+      <DialogContent
+        className="max-w-none! w-[95vw]! h-[95vh]! p-0 bg-black/95 border-none shadow-none flex items-center justify-center"
+        onClick={() => setImageEnlarged(false)}
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <DialogTitle className="sr-only">{t(step.title)}</DialogTitle>
+        <DialogDescription className="sr-only" />
+        <img
+          src={step.image}
+          alt={t(step.title)}
+          className="w-auto h-auto max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+        />
       </DialogContent>
     </Dialog>
+  );
+
+  return isMobile ? (
+    <>
+      {enlargedImageModal}
+      <Drawer open={open} onOpenChange={handleOpenChange}>
+        <DrawerContent>{content}</DrawerContent>
+      </Drawer>
+    </>
+  ) : (
+    <>
+      {enlargedImageModal}
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-w-2xl max-h-[90vh] p-0 flex flex-col overflow-hidden outline-none">
+          <DialogTitle className="sr-only">{title}</DialogTitle>
+          {content}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

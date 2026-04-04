@@ -7,7 +7,8 @@
     "label": "Matrix-hemserverns adress",
     "description": "Ange adressen nedan i din Matrix-klient som hemserver.",
     "copyButton": "Kopiera"
-  },  "featureguides": {
+  },
+  "featureguides": {
     "title": "Funktionsguider",
     "messaging": {
       "button": "Meddelanden, röstmeddelanden, samtal och videokonferenser",

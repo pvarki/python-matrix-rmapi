@@ -136,3 +136,4 @@ dmypy.json
 
 node_modules
 .__mf__temp
+ui/public/assets/features/.DS_Store

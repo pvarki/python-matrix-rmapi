@@ -171,15 +171,18 @@ async def configure_rooms_state(synapse: SynapseAdmin, rooms: Dict[str, str], de
             events_levels["m.space.child"] = 0
             levels["events"] = events_levels
             await synapse.set_room_state(room_id, "m.room.power_levels", levels)
+            LOGGER.info("Set space child permission (level 0) for space %s", room_id)
             continue
         await synapse.set_room_state(room_id, "m.room.encryption", {"algorithm": "m.megolm.v1.aes-sha2"})
         await synapse.set_room_state(room_id, "m.room.history_visibility", {"history_visibility": "joined"})
-        # Ensure regular users can start calls (idempotent — safe to re-apply)
+        # Ensure regular users can start calls and set their power levels.
+        # Idempotent — safe to re-apply on every restart.
         levels = await synapse.get_power_levels(room_id)
         events_levels = dict(levels.get("events", {}))
         events_levels.update(CALL_EVENTS_DEFAULT_LEVEL)
         levels["events"] = events_levels
         await synapse.set_room_state(room_id, "m.room.power_levels", levels)
+        LOGGER.info("Set call event permissions for room %s (%s)", key, room_id)
         if key != "admin":
             await synapse.set_room_state(
                 room_id,
