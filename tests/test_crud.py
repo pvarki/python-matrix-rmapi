@@ -2,8 +2,11 @@
 
 from typing import Dict
 import logging
+import uuid
 from fastapi.testclient import TestClient
 
+from matrixrmapi.config import get_server_domain
+from matrixrmapi.types import AdminAction
 from .conftest import APP
 
 LOGGER = logging.getLogger(__name__)
@@ -62,3 +65,54 @@ def test_demote(norppa11: Dict[str, str], rm_mtlsclient: TestClient) -> None:
     payload = resp.json()
     assert "success" in payload
     assert payload["success"]
+
+
+# ---------------------------------------------------------------------------
+# Deferred-queue behaviour (Synapse not yet ready)
+# ---------------------------------------------------------------------------
+
+
+def _unique_user() -> Dict[str, str]:
+    """Return a user dict with a unique callsign to avoid state collisions."""
+    tag = uuid.uuid4().hex[:6]
+    return {
+        "uuid": str(uuid.uuid4()),
+        "callsign": f"queue{tag}",
+        "x509cert": "FIXME: dummy",
+    }
+
+
+def test_promote_queues_uid_when_synapse_not_ready(rm_mtlsclient: TestClient) -> None:
+    """When Synapse is not yet initialised, /promoted must enqueue the uid."""
+    user = _unique_user()
+    resp = rm_mtlsclient.post("/api/v1/users/promoted", json=user)
+    assert resp.status_code == 200
+    assert resp.json()["success"] is True
+
+    uid = f"@{user['callsign'].lower()}:{get_server_domain()}"
+    pending: Dict[str, AdminAction] = getattr(APP.state, "pending_promotions", {})
+    assert pending.get(uid) is AdminAction.PROMOTE
+
+
+def test_demote_queues_uid_when_synapse_not_ready(rm_mtlsclient: TestClient) -> None:
+    """When Synapse is not yet initialised, /demoted must enqueue the uid."""
+    user = _unique_user()
+    resp = rm_mtlsclient.post("/api/v1/users/demoted", json=user)
+    assert resp.status_code == 200
+    assert resp.json()["success"] is True
+
+    uid = f"@{user['callsign'].lower()}:{get_server_domain()}"
+    pending: Dict[str, AdminAction] = getattr(APP.state, "pending_promotions", {})
+    assert pending.get(uid) is AdminAction.DEMOTE
+
+
+def test_demote_overwrites_pending_promote(rm_mtlsclient: TestClient) -> None:
+    """If a user is promoted then demoted before Synapse is ready, only demote survives."""
+    user = _unique_user()
+    uid = f"@{user['callsign'].lower()}:{get_server_domain()}"
+
+    rm_mtlsclient.post("/api/v1/users/promoted", json=user)
+    rm_mtlsclient.post("/api/v1/users/demoted", json=user)
+
+    pending: Dict[str, AdminAction] = getattr(APP.state, "pending_promotions", {})
+    assert pending.get(uid) is AdminAction.DEMOTE

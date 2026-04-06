@@ -8,6 +8,81 @@
     "description": "Syötä alla oleva osoite Matrix-sovelluksesi kotipalvelimeksi.",
     "copyButton": "Kopioi"
   },
+  "featureguides": {
+    "title": "Toiminto-oppaat",
+    "messaging": {
+      "button": "Viestit, puheviestit, puhelut ja videoneuvottelut",
+      "title": "Viestintä ja puhelut Matrixissa",
+      "steps": {
+        "intro": {
+          "title": "Viestintä Elementissä",
+          "description": "Element tukee tekstiviestejä, puheviestejä, ääni- ja videopuheluita sekä videoneuvotteluita. Nämä toimivat missä tahansa huoneessa tai suoraviestikeskustelussa."
+        },
+        "space": {
+          "title": "Space ja huoneet",
+          "description": "Liityt automaattisesti tämän palvelimen Spacen jäseneksi. Spaceen kuuluvat kaikki palvelimen jäsenet, ja siinä on valmiiksi luodut huoneet, joilla voit aloittaa kommunikoinnin."
+        },
+        "rooms": {
+          "title": "Viestintä huoneissa",
+          "description": "Lähetä viestejä missä tahansa huoneessa tai aloita suoraviesti muiden jäsenten kanssa. Voit myös luoda uusia huoneita, jotka ovat joko kaikkien Spacen jäsenten löydettävissä tai vain kutsulla liityttävissä."
+        },
+        "calls": {
+          "title": "Ääni- ja videopuhelut",
+          "description": "Aloita ääni- tai videopuhelu suoraan mistä tahansa huoneesta tai suoraviestistä — kätevä nopeiden keskustelujen käymiseen ilman kokouksen järjestämistä."
+        },
+        "meetings": {
+          "title": "Ryhmävideopuhelu",
+          "description": "Element tukee laadukkaita ryhmävideopuheluita huoneissa - täysin vastaava kyky kuin Microsoft Teamsissa, Skypessä tai muissa vastaavissa palveluissa."
+        },
+        "encryption": {
+          "title": "Salaus",
+          "description": "Matrixin ominaisuuksia on vahva päästä-päähän salaus, eli ulkopuoliset, mukaan lukien palvelin, ei voi saada yksityisviestejäsi tai ryhmiesi viestejä auki."
+        }
+      }
+    },
+    "unit": {
+      "button": "Matrixin käyttö yksikössä",
+      "title": "Matrixin käyttö yksikössä",
+      "steps": {
+        "setup": {
+          "title": "Helppo pääviestiväline",
+          "description": "Matrix täyttää kaikki viesti- ja videopuhelutarpeet hyvin. Kaikki tämän palvelimen jäsenet ovat automaattisesti palvelimesi Spacen jäseniä, minkä avulla voit aloittaa joukkosi viestitoiminnan välittömästi."
+        },
+        "rooms": {
+          "title": "Esimerkki hyvästä huonejaosta",
+          "description": "Automaattisesti luotujen huoneiden lisäksi, suosittelemme luomaan esimerkiksi oheiset huoneet ja kutsumaan niihin soveltuvat jäsenet."
+        },
+        "command": {
+          "title": "Command-huone",
+          "description": "Command eli komentokanavalle kutsu joukkosi johtajat. Kanava on kuin radiokomentokanava -käskyjä ja niiden kuittaamista varten. Sillä voidaan pitää myös käskynantoja videokokouksen ylitse."
+        },
+        "friendly": {
+          "title": "Friendly situation-huone",
+          "description": "Friendly situation-huoneeseen kutsu vähintään joukkosi johtajat ja alijohtajat. Kanavalla liikennöidään tehtävän suoritusvaiheesta, eli missä omat liikkuvat ja miten tehtävien suorittaminen etenee."
+        },
+        "recon": {
+          "title": "Recon-huone",
+          "description": "Recon-huoneeseen kutsu vähintään joukkosi johtajat ja alijohtajat. Kerro kanavalla tiedustelu- ja vihollishavainnoista."
+        },
+        "guard": {
+          "title": "Guard-huone",
+          "description": "Guard-huoneen kannattaa olla sellainen, että siihen voi Spacesta liittyä vapaasti. Vartio- ja partiotehtävän aloittavat taistelijat liittyvät tehtävänsä ajaksi, ja näin komentopaikalla on suora yhteys heihin."
+        },
+        "others": {
+          "title": "Muut huonesuositukset",
+          "description": "Muita huonesuosituksia on esimerkiksi Guard-huone, mihin vartio- ja partiotehtäviä suorittavat liittyvät tehtävän ajaksi, sekä Call for Fires ja Fires Management-huoneet tulenjohtoa ja tulenkäytön koordinointia varten."
+        },
+        "users": {
+          "title": "Käyttäjien hallinta",
+          "description": "Deploy Appissa ylläpitäjäksi asetettu käyttäjä saa automaattisesti ylläpitäjäoikeuden Spaceen ja sen huoneisiin, sekä lisätään adminhuoneeseen. Deploy Appista poistettu käyttäjä taas menettää yhteyden Matrixiin."
+        },
+        "federation": {
+          "title": "Yhteistoiminta muiden Matrix-palvelinten kanssa",
+          "description": "Oletuksena voit kutsua muiden Matrix-palvelimien käyttäjiä huoneisiisi. Tämä mahdollistaa yhteistoiminnan muiden Deploy Appia käyttävien joukkojen tai vaikkapa NATO-liittolaisten kanssa, jotka myös käyttävät Matrixia esimerkiksi NI2CE-sovelluksen välityksellä."
+        }
+      }
+    }
+  },
   "onboarding": {
     "back": "Takaisin",
     "clickToEnlarge": "Klikkaa suurentaaksesi",
@@ -76,13 +151,16 @@
     },
     "title": "Matrix-perehdytys",
     "downloads": {
-      "open_website": "Avaa lataussivusto"
+      "open_website": "Avaa lataussivusto",
+      "google_play": "Lataa Google Playsta",
+      "app_store": "Lataa App Storesta"
     }
   },
   "platform": {
     "select_placeholder": "Valitse alusta",
     "android": "Android",
     "ios": "iOS",
+    "macos": "macOS",
     "linux": "Linux",
     "windows": "Windows"
   }

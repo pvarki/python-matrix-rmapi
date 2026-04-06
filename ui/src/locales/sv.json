@@ -8,6 +8,81 @@
     "description": "Ange adressen nedan i din Matrix-klient som hemserver.",
     "copyButton": "Kopiera"
   },
+  "featureguides": {
+    "title": "Funktionsguider",
+    "messaging": {
+      "button": "Meddelanden, röstmeddelanden, samtal och videokonferenser",
+      "title": "Meddelanden och samtal i Matrix",
+      "steps": {
+        "intro": {
+          "title": "Meddelanden i Element",
+          "description": "Element stöder textmeddelanden, röstmeddelanden, röst- och videosamtal samt videokonferenser. Dessa fungerar i vilket rum eller direktmeddelandekonversation som helst."
+        },
+        "space": {
+          "title": "Space och rum",
+          "description": "Du blir automatiskt medlem i denna servers Space. Spacet inkluderar alla servermedlemmar och har färdiga rum så att du kan börja kommunicera direkt."
+        },
+        "rooms": {
+          "title": "Meddelanden i rum",
+          "description": "Skicka meddelanden i vilket rum som helst eller starta ett direktmeddelande med andra medlemmar. Du kan också skapa nya rum som antingen är synliga för alla Space-medlemmar eller enbart tillgängliga via inbjudan."
+        },
+        "calls": {
+          "title": "Röst- och videosamtal",
+          "description": "Starta ett röst- eller videosamtal direkt från vilket rum eller direktmeddelande som helst — smidigt för snabba samtal utan att behöva ordna ett möte."
+        },
+        "meetings": {
+          "title": "Gruppvideosamtal",
+          "description": "Element stöder högkvalitativa gruppvideosamtal i rum — helt jämförbart med Microsoft Teams, Skype eller andra liknande tjänster."
+        },
+        "encryption": {
+          "title": "Kryptering",
+          "description": "En nyckelfunktion i Matrix är stark ände-till-ände-kryptering, vilket innebär att utomstående, inklusive servern, inte kan komma åt dina privata meddelanden eller gruppmeddelanden."
+        }
+      }
+    },
+    "unit": {
+      "button": "Använda Matrix i en enhet",
+      "title": "Använda Matrix i en enhet",
+      "steps": {
+        "setup": {
+          "title": "Enkelt primärt meddelandeverktyg",
+          "description": "Matrix uppfyller alla meddelande- och videosamtalsbehov väl. Alla medlemmar på denna server är automatiskt medlemmar i serverns Space, vilket gör att du kan starta din grupps meddelandeverksamhet omedelbart."
+        },
+        "rooms": {
+          "title": "Exempel på en bra rumsindelning",
+          "description": "Utöver de automatiskt skapade rummen rekommenderar vi att skapa till exempel följande rum och bjuda in lämpliga medlemmar till dem."
+        },
+        "command": {
+          "title": "Command-rum",
+          "description": "Bjud in dina grupsledare till Command-kanalen. Kanalen fungerar som en radiokommandokanal — för order och bekräftelser. Den kan också användas för orderbriefingar via videokonferens."
+        },
+        "friendly": {
+          "title": "Friendly situation-rum",
+          "description": "Bjud in åtminstone dina grupsledare och ställföreträdare till Friendly situation-rummet. Kanalen används för att kommunicera uppdragets genomförandefas — var egna styrkor rör sig och hur uppdragen framskrider."
+        },
+        "recon": {
+          "title": "Recon-rum",
+          "description": "Bjud in åtminstone dina grupsledare och ställföreträdare till Recon-rummet. Använd kanalen för att kommunicera spanings- och fiendeobservationer."
+        },
+        "guard": {
+          "title": "Guard-rum",
+          "description": "Guard-rummet bör vara inställt så att vem som helst kan gå med fritt från Spacet. Soldater som påbörjar vakt- eller patrulluppdrag ansluter under uppdragets varaktighet, vilket ger kommandoplatsen en direkt förbindelse till dem."
+        },
+        "others": {
+          "title": "Övriga rumsrekommendationer",
+          "description": "Andra rekommenderade rum inkluderar ett Call for Fires och Fires Management-rum för eldledning och eldsamordning."
+        },
+        "users": {
+          "title": "Användarhantering",
+          "description": "En användare som är inställd som administratör i Deploy App får automatiskt administratörsrättigheter till Spacet och dess rum, och läggs till i adminrummet. En användare som tas bort från Deploy App förlorar åtkomsten till Matrix."
+        },
+        "federation": {
+          "title": "Samverkan med andra Matrix-servrar",
+          "description": "Som standard kan du bjuda in användare från andra Matrix-servrar till dina rum. Detta möjliggör samverkan med andra grupper som använder Deploy App eller till och med NATO-allierade som också använder Matrix, till exempel via NI2CE-applikationen."
+        }
+      }
+    }
+  },
   "onboarding": {
     "back": "Bakåt",
     "clickToEnlarge": "Klicka för att förstora",
@@ -43,7 +118,7 @@
       },
       "desktop-step-4": {
         "title": "Logga in i Element - 4",
-        "description": "Tryck på \"Fortsätt med Keycloak\". Fortsätt i din webbläsare, som bör fråga efter ditt mTLS-certifikat några gånger. Autentisera med mTLS."
+        "description": "Tryck på \"Fortsätt med Keycloak\". Fortsätt i din webbläsare, som bör fråga efter ditt mTLS-certifikat. Autentisera med mTLS."
       },
       "desktop-step-5": {
         "title": "Elements startsida",
@@ -76,13 +151,16 @@
     },
     "title": "Introduktion till Matrix",
     "downloads": {
-      "open_website": "Öppna webbplatsen för nedladdning"
+      "open_website": "Öppna webbplatsen för nedladdning",
+      "google_play": "Hämta på Google Play",
+      "app_store": "Ladda ned från App Store"
     }
   },
   "platform": {
     "select_placeholder": "Välj plattform",
     "android": "Android",
     "ios": "iOS",
+    "macos": "macOS",
     "linux": "Linux",
     "windows": "Windows"
   }
