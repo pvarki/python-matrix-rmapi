@@ -26,10 +26,10 @@ LOGGER = logging.getLogger(__name__)
 # (key, alias_suffix, display_name, is_space, is_private)
 ROOMS_CONFIG: List[Tuple[str, str, str, bool, bool]] = [
     ("space", "{d}-space", "{d}", True, False),
-    ("admin", "{d}-admin", "Admin channel", False, True),
-    ("general", "{d}-general", "98-General-for-all", False, False),
+    ("admin", "{d}-admin", "96-Admin channel", False, True),
+    ("general", "{d}-general", "98-General", False, False),
     ("helpdesk", "{d}-helpdesk", "99-Helpdesk", False, False),
-    ("offtopic", "{d}-offtopic", "Off topic", False, False),
+    ("offtopic", "{d}-offtopic", "97-Offtopic", False, False),
 ]
 
 ROOM_TOPICS: Dict[str, str] = {
