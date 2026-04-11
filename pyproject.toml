@@ -2,7 +2,7 @@
 name = "matrixrmapi"
 version = "1.0.0"
 description = "Matrix service RASENMAEHER integration API service"
-authors = ["Eero af Heurlin <eero.afheurlin@iki.fi>"]
+authors = ["logaritmi <logaritmi@FIXME.com>"]
 homepage = "https://github.com/pvarki/python-rasenmaeher-matrixrmapi/"
 repository = "https://github.com/pvarki/python-rasenmaeher-matrixrmapi/"
 license = "MIT"
