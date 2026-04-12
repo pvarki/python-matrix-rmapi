@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "matrixrmapi"
-version = "1.0.0"
+version = "1.0.1"
 description = "Matrix service RASENMAEHER integration API service"
 authors = ["logaritmi <logaritmi@FIXME.com>"]
 homepage = "https://github.com/pvarki/python-rasenmaeher-matrixrmapi/"

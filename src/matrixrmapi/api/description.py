@@ -74,7 +74,7 @@ async def return_product_description(language: str) -> ProductDescription:
 )
 async def return_product_description_extended(language: str) -> ProductDescriptionExtended:
     """Fetch description from each product in manifest"""
-    docs_url = "https://pvarki.github.io/Docusaurus-docs/docs/android/deployapp/home/"
+    docs_url = f"https://docs.pvarki.fi/{language}/docs/guides/matrix-guide"
 
     if language == "fi":
         return ProductDescriptionExtended(
