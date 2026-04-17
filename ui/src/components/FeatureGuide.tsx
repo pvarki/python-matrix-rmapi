@@ -73,11 +73,17 @@ export function FeatureGuide({
   };
 
   const content = (
-    <div className="flex flex-col h-full max-h-[85vh] w-full overflow-hidden">
+    <div
+      className="flex flex-col h-full max-h-[85vh] w-full overflow-hidden"
+      data-testid="feature-guide-content"
+    >
       <div className="flex-1 overflow-y-auto min-h-0 p-4 md:p-6 space-y-4">
         <div className="space-y-1">
           <h2 className="text-xl font-bold leading-tight">{title}</h2>
-          <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+          <p
+            className="text-xs text-muted-foreground uppercase tracking-wider font-semibold"
+            data-testid="feature-guide-step-indicator"
+          >
             {t("onboarding.step")} {currentStep + 1} / {steps.length}
           </p>
         </div>
@@ -135,6 +141,7 @@ export function FeatureGuide({
           onClick={handlePrev}
           disabled={currentStep === 0}
           className="flex-1"
+          data-testid="feature-guide-back"
         >
           <ChevronLeft className="w-4 h-4 mr-2" />
           {t("onboarding.back")}
@@ -142,6 +149,7 @@ export function FeatureGuide({
         <Button
           onClick={handleNext}
           className="flex-1 bg-primary-light hover:bg-primary-light/90 text-white"
+          data-testid="feature-guide-next"
         >
           {currentStep === steps.length - 1
             ? t("onboarding.finish")
@@ -183,14 +191,19 @@ export function FeatureGuide({
     <>
       {enlargedImageModal}
       <Drawer open={open} onOpenChange={handleOpenChange}>
-        <DrawerContent>{content}</DrawerContent>
+        <DrawerContent data-testid="feature-guide-dialog">
+          {content}
+        </DrawerContent>
       </Drawer>
     </>
   ) : (
     <>
       {enlargedImageModal}
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[90vh] p-0 flex flex-col overflow-hidden outline-none">
+        <DialogContent
+          className="max-w-2xl max-h-[90vh] p-0 flex flex-col overflow-hidden outline-none"
+          data-testid="feature-guide-dialog"
+        >
           <DialogTitle className="sr-only">{title}</DialogTitle>
           {content}
         </DialogContent>

@@ -506,11 +506,16 @@ export function OnboardingHandler() {
 
       {isMobile ? (
         <Drawer open={open} onOpenChange={handleOpenChange}>
-          <DrawerContent>{contentComponent}</DrawerContent>
+          <DrawerContent data-testid="onboarding-dialog">
+            {contentComponent}
+          </DrawerContent>
         </Drawer>
       ) : (
         <Dialog open={open} onOpenChange={handleOpenChange}>
-          <DialogContent className="max-w-2xl max-h-[90vh] p-0 flex flex-col overflow-hidden outline-none">
+          <DialogContent
+            className="max-w-2xl max-h-[90vh] p-0 flex flex-col overflow-hidden outline-none"
+            data-testid="onboarding-dialog"
+          >
             {contentComponent}
           </DialogContent>
         </Dialog>
