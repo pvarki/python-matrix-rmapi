@@ -169,18 +169,18 @@ In the shell you can start the uvicorn devel server with (binding to 0.0.0.0 is 
     uvicorn "matrixrmapi.app:get_app" --factory --host 0.0.0.0 --port 4625 --reload --log-level debug
 
 
-pre-commit considerations
-^^^^^^^^^^^^^^^^^^^^^^^^^
+prek considerations
+^^^^^^^^^^^^^^^^^^^
 
-If working in Docker instead of native env you need to run the pre-commit checks in docker too::
+If working in Docker instead of native env you need to run the prek checks in docker too::
 
-    docker exec -i matrixrmapi_devel /bin/bash -c "pre-commit install  --install-hooks"
-    docker exec -i matrixrmapi_devel /bin/bash -c "pre-commit run --all-files"
+    docker exec -i matrixrmapi_devel /bin/bash -c "prek install"
+    docker exec -i matrixrmapi_devel /bin/bash -c "prek run --all-files"
 
 You need to have the container running, see above. Or alternatively use the docker run syntax but using
 the running container is faster::
 
-    docker run --rm -it -v `pwd`":/app" matrixrmapi:devel_shell -c "pre-commit run --all-files"
+    docker run --rm -it -v `pwd`":/app" matrixrmapi:devel_shell -c "prek run --all-files"
 
 Test suite
 ^^^^^^^^^^
@@ -213,12 +213,11 @@ TLDR:
 
     git checkout -b my_branch
 
-- install Poetry: https://python-poetry.org/docs/#installation
-- Install project deps and pre-commit hooks::
+- Install project deps and prek hooks::
 
-    poetry install
-    pre-commit install --install-hooks
-    pre-commit run --all-files
+    uv sync
+    uv run prek install
+    uv run prek run --all-files
 
 - Ready to go.
 

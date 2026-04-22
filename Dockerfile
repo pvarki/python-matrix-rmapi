@@ -4,22 +4,21 @@
 #############################################
 FROM advian/tox-base:debian-bookworm as tox
 ARG PYTHON_VERSIONS="3.11 3.12"
-ARG POETRY_VERSION="2.2.1"
 RUN export RESOLVED_VERSIONS=`pyenv_resolve $PYTHON_VERSIONS` \
     && echo RESOLVED_VERSIONS=$RESOLVED_VERSIONS \
     && for pyver in $RESOLVED_VERSIONS; do pyenv install -s $pyver; done \
     && pyenv global $RESOLVED_VERSIONS \
-    && poetry self update $POETRY_VERSION || pip install -U poetry==$POETRY_VERSION \
-    && pip install -U tox \
+    && pip install -U uv tox tox-uv \
     && apt-get update && apt-get install -y \
         git \
     && rm -rf /var/lib/apt/lists/* \
     && true
-COPY ./poetry.lock ./pyproject.toml ./README.rst ./.pre-commit-config.yaml ./docker /app/
+COPY ./uv.lock ./pyproject.toml ./README.rst ./.pre-commit-config.yaml ./docker /app/
 WORKDIR /app
-RUN poetry install \
-    && poetry run docker/pre_commit_init.sh \
-    && poetry env remove --all
+RUN uv sync \
+    && uv run docker/pre_commit_init.sh \
+    && rm -rf .venv \
+    && true
 
 ######################
 # Base builder image #
@@ -36,8 +35,9 @@ ENV \
   PIP_NO_CACHE_DIR=off \
   PIP_DISABLE_PIP_VERSION_CHECK=on \
   PIP_DEFAULT_TIMEOUT=100 \
-  # poetry:
-  POETRY_VERSION=2.2.1
+  # uv:
+  UV_NO_CACHE=1
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 RUN apt-get update && apt-get install -y \
         curl \
         git \
@@ -53,10 +53,6 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/* \
     # githublab ssh
     && mkdir -p -m 0700 ~/.ssh && ssh-keyscan gitlab.com github.com | sort > ~/.ssh/known_hosts \
-    # Installing `poetry` package manager:
-    && curl -sSL https://install.python-poetry.org | python3 - \
-    && echo 'export PATH="/root/.local/bin:$PATH"' >>/root/.profile \
-    && export PATH="/root/.local/bin:$PATH" \
     && true
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
@@ -65,14 +61,10 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
 SHELL ["/bin/bash", "-lc"]
 # Copy only requirements, to cache them in docker layer:
 WORKDIR /pysetup
-COPY ./poetry.lock ./pyproject.toml ./README.rst /pysetup/
-# Install basic requirements (utilizing an internal docker wheelhouse if available)
-RUN --mount=type=ssh pip3 install wheel virtualenv \
-    && poetry self add poetry-plugin-export \
-    && poetry export -f requirements.txt --without-hashes -o /tmp/requirements.txt \
-    && pip3 wheel --wheel-dir=/tmp/wheelhouse -r /tmp/requirements.txt \
-    && virtualenv /.venv && source /.venv/bin/activate && echo 'source /.venv/bin/activate' >>/root/.profile \
-    && pip3 install --no-deps --find-links=/tmp/wheelhouse/ -r /tmp/requirements.txt \
+COPY ./uv.lock ./pyproject.toml ./README.rst /pysetup/
+# Install runtime requirements into a virtualenv
+RUN --mount=type=ssh uv sync --no-dev --no-install-project \
+    && echo 'source /pysetup/.venv/bin/activate' >>/root/.profile \
     && true
 
 
@@ -84,15 +76,16 @@ FROM builder_base as production_build
 COPY ./docker/entrypoint.sh /docker-entrypoint.sh
 COPY ./docker/container-init.sh /container-init.sh
 # Only files needed by production setup
-COPY ./poetry.lock ./pyproject.toml ./README.rst ./src /app/
+COPY ./uv.lock ./pyproject.toml ./README.rst ./src /app/
 COPY ./ui /ui/
 WORKDIR /ui
 RUN CI=true pnpm install && pnpm build
 RUN mkdir -p /ui_build && cp -r dist/* /ui_build/
 WORKDIR /app
-# Build the wheel package with poetry and add it to the wheelhouse
-RUN --mount=type=ssh source /.venv/bin/activate \
-    && poetry build -f wheel --no-interaction --no-ansi \
+# Build the wheel package with uv and add it to the wheelhouse
+RUN --mount=type=ssh source /pysetup/.venv/bin/activate \
+    && uv build --wheel \
+    && mkdir -p /tmp/wheelhouse \
     && cp dist/*.whl /tmp/wheelhouse \
     && chmod a+x /docker-entrypoint.sh \
     && true
@@ -102,6 +95,7 @@ RUN --mount=type=ssh source /.venv/bin/activate \
 # Main production build #
 #########################
 FROM python:3.11-slim-bookworm as production
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 COPY --from=production_build /tmp/wheelhouse /tmp/wheelhouse
 COPY --from=production_build /ui_build /ui_build
 COPY --from=production_build /docker-entrypoint.sh /docker-entrypoint.sh
@@ -122,7 +116,7 @@ RUN --mount=type=ssh apt-get update && apt-get install -y \
     && chmod a+x /docker-entrypoint.sh \
     && chmod a+x /container-init.sh \
     && WHEELFILE=`echo /tmp/wheelhouse/matrixrmapi-*.whl` \
-    && pip3 install --find-links=/tmp/wheelhouse/ "$WHEELFILE"[all] \
+    && uv pip install --system --find-links=/tmp/wheelhouse/ "$WHEELFILE"[all] \
     && rm -rf /tmp/wheelhouse/ \
     # Do whatever else you need to
     && true
@@ -138,8 +132,7 @@ COPY . /app
 COPY ./docker/entrypoint-dev.sh /entrypoint-dev.sh
 RUN chmod +x /entrypoint-dev.sh
 WORKDIR /app
-RUN --mount=type=ssh source /.venv/bin/activate \
-    && poetry install --no-interaction --no-ansi \
+RUN --mount=type=ssh uv sync \
     && true
 
 
@@ -150,10 +143,9 @@ FROM devel_build as test
 WORKDIR /app
 ENTRYPOINT ["/usr/bin/tini", "--", "docker/entrypoint-test.sh"]
 # Re run install to get the service itself installed
-RUN --mount=type=ssh source /.venv/bin/activate \
-    && poetry install --no-interaction --no-ansi \
+RUN --mount=type=ssh uv sync \
     && ln -s /app/docker/container-init.sh /container-init.sh \
-    && docker/pre_commit_init.sh \
+    && uv run docker/pre_commit_init.sh \
     && true
 
 
