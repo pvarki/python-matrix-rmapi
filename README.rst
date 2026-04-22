@@ -231,7 +231,7 @@ Versioning is handled with ``bump-my version``. To increment, use ``bump-my-vers
 Example of the effect of an increment::
 
     bump-my-version show-bump
-    1.0.2-260422 ── bump ─┬─ major ─── 2.0.0-260422
+    1.0.2-260420 ── bump ─┬─ major ─── 2.0.0-260422
                           ├─ minor ─── 1.1.0-260422
                           ├─ patch ─── 1.0.3-260422
                           ╰─ release ─ 1.0.2-260422
