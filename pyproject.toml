@@ -1,16 +1,59 @@
-[tool.poetry]
+[project]
 name = "matrixrmapi"
-version = "1.0.1"
+version = "1.0.2"
 description = "Matrix service RASENMAEHER integration API service"
-authors = ["logaritmi <logaritmi@FIXME.com>"]
-homepage = "https://github.com/pvarki/python-rasenmaeher-matrixrmapi/"
-repository = "https://github.com/pvarki/python-rasenmaeher-matrixrmapi/"
-license = "MIT"
+authors = [{ name = "logaritmi", email = "logaritmi@FIXME.com" }]
+license = { text = "MIT" }
 readme = "README.rst"
+requires-python = ">3.10,<4.0"
+dependencies = [
+    "libadvian>=1.4,<2.0",
+    "libpvarki>=2.2,<3.0",
+    "fastapi>=0.89,<1.0",
+    "pydantic>=2.0,<3.0",
+    "jinja2>=3.1,<4.0",
+    "uvicorn[standard]>=0.20,<1.0",
+    "gunicorn>=21.0,<25.0",
+    "httpx>=0.28.1,<1.0",
+    "filelock>=3.12,<4.0",
+]
 
-[tool.poetry.scripts]
+[project.urls]
+Homepage = "https://github.com/pvarki/python-rasenmaeher-matrixrmapi/"
+Repository = "https://github.com/pvarki/python-rasenmaeher-matrixrmapi/"
+
+[project.scripts]
 matrixrmapi = "matrixrmapi.console:matrixrmapi_cli"
 
+[dependency-groups]
+dev = [
+    "pytest>=8.0,<9.0",
+    "coverage>=7.4,<8.0",
+    "pytest-cov>=4.1,<5.0",
+    "pylint>=3.3,<4.0",
+    "black>=25.1,<26.0",
+    "bandit>=1.8,<2.0",
+    "mypy>=1.15,<2.0",
+    "prek>=0.3,<1.0",
+    "pytest-asyncio>=0.21,<1.0",
+    "bump2version>=1.0,<2.0",
+    "detect-secrets>=1.5,<2.0",
+]
+
+[tool.uv.sources]
+libpvarki = { index = "nexuslocal" }
+
+[[tool.uv.index]]
+name = "nexuslocal"
+url = "https://nexus.dev.pvarki.fi/repository/pypilocal/simple"
+explicit = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/matrixrmapi"]
 
 
 [tool.black]
@@ -58,38 +101,3 @@ ignore-imports = true
 [tool.coverage.run]
 omit = ["tests/*"]
 branch = true
-
-[[tool.poetry.source]]
-name = "nexuslocal"
-url = "https://nexus.dev.pvarki.fi/repository/pypilocal/simple"
-priority = "explicit"
-
-[tool.poetry.dependencies]
-python = ">3.10,<4.0"
-libadvian = "^1.4"
-libpvarki = { version="^2.2", source="nexuslocal"}
-fastapi = ">=0.89,<1.0"  # caret behaviour on 0.x is to lock to 0.x.*
-pydantic = ">=2.0,<3.0"
-jinja2 = "^3.1"
-uvicorn = {version = ">=0.20,<1.0", extras = ["standard"]}  # caret behaviour on 0.x is to lock to 0.x.*
-gunicorn = "^21.0"
-httpx = ">=0.28.1,<1.0"
-filelock = "^3.12"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.0"
-coverage = "^7.4"
-pytest-cov = "^4.1"
-pylint = "^3.3"
-black = "^25.1"
-bandit = "^1.8"
-mypy = "^1.15"
-pre-commit = "^3.6"
-pytest-asyncio = ">=0.21,<1.0" # caret behaviour on 0.x is to lock to 0.x.*
-bump2version = "^1.0"
-detect-secrets = "^1.5"
-
-
-[build-system]
-requires = ["poetry-core>=1.2.0"]
-build-backend = "poetry.core.masonry.api"
