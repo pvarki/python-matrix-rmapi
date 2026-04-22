@@ -101,3 +101,41 @@ ignore-imports = true
 [tool.coverage.run]
 omit = ["tests/*"]
 branch = true
+<<<<<<< HEAD
+=======
+
+[[tool.poetry.source]]
+name = "nexuslocal"
+url = "https://nexus.dev.pvarki.fi/repository/pypilocal/simple"
+priority = "explicit"
+
+[tool.poetry.dependencies]
+python = ">3.10,<4.0"
+libadvian = "^1.4"
+libpvarki = { version="^2.2", source="nexuslocal"}
+fastapi = ">=0.89,<1.0"  # caret behaviour on 0.x is to lock to 0.x.*
+pydantic = ">=2.0,<3.0"
+jinja2 = "^3.1"
+uvicorn = {version = ">=0.20,<1.0", extras = ["standard"]}  # caret behaviour on 0.x is to lock to 0.x.*
+gunicorn = "^21.0"
+httpx = ">=0.28.1,<1.0"
+filelock = "^3.12"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0"
+coverage = "^7.4"
+pytest-cov = "^4.1"
+pylint = "^3.3"
+black = "^25.1"
+bandit = "^1.8"
+mypy = "^1.15"
+pre-commit = "^3.6"
+pytest-asyncio = ">=0.21,<1.0" # caret behaviour on 0.x is to lock to 0.x.*
+bump-my-version = "^1.0"
+detect-secrets = "^1.5"
+
+
+[build-system]
+requires = ["poetry-core>=1.2.0"]
+build-backend = "poetry.core.masonry.api"
+>>>>>>> 42c55e8 (fix: change poetry to install bump-my-version instead of bump2version)
