@@ -224,6 +224,18 @@ TLDR:
 Remember to activate your virtualenv whenever working on the repo, this is needed
 because pylint and mypy pre-commit hooks use the "system" python for now (because reasons).
 
+Versioning
+^^^^^^^^^^
+Versioning is handled with ``bump-my version``. To increment, use ``bump-my-version bump <patch/minor/major>``
+
+Example of the effect of an increment::
+
+    bump-my-version show-bump
+    1.0.2-260422 ── bump ─┬─ major ─── 2.0.0-260422
+                          ├─ minor ─── 1.1.0-260422
+                          ├─ patch ─── 1.0.3-260422
+                          ╰─ release ─ 1.0.2-260422
+
 Testing a local Synapse server
 ------------------------------
 Aka, how to connect a Matrix client to your server to see how things work out.
