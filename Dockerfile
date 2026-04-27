@@ -35,8 +35,10 @@ ENV \
   PIP_NO_CACHE_DIR=off \
   PIP_DISABLE_PIP_VERSION_CHECK=on \
   PIP_DEFAULT_TIMEOUT=100 \
+  PIP_INDEX_URL=https://nexus.dev.pvarki.fi/repository/python/simple \
   # uv:
-  UV_NO_CACHE=1
+  UV_NO_CACHE=1 \
+  UV_DEFAULT_INDEX=https://nexus.dev.pvarki.fi/repository/python/simple
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 RUN apt-get update && apt-get install -y \
         curl \
@@ -76,7 +78,8 @@ FROM builder_base as production_build
 COPY ./docker/entrypoint.sh /docker-entrypoint.sh
 COPY ./docker/container-init.sh /container-init.sh
 # Only files needed by production setup
-COPY ./uv.lock ./pyproject.toml ./README.rst ./src /app/
+COPY ./uv.lock ./pyproject.toml ./README.rst /app/
+COPY ./src /app/src/
 COPY ./ui /ui/
 WORKDIR /ui
 RUN CI=true pnpm install && pnpm build
@@ -116,7 +119,7 @@ RUN --mount=type=ssh apt-get update && apt-get install -y \
     && chmod a+x /docker-entrypoint.sh \
     && chmod a+x /container-init.sh \
     && WHEELFILE=`echo /tmp/wheelhouse/matrixrmapi-*.whl` \
-    && uv pip install --system --find-links=/tmp/wheelhouse/ "$WHEELFILE"[all] \
+    && pip3 install --index-url https://nexus.dev.pvarki.fi/repository/python/simple "$WHEELFILE" \
     && rm -rf /tmp/wheelhouse/ \
     # Do whatever else you need to
     && true
