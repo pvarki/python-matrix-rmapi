@@ -1,0 +1,15 @@
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  snyk-monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pvarki/config-ci-library/.github/actions/setup-python@main
+      - uses: pvarki/config-ci-library/.github/actions/snyk-monitor@main
+        with:
+          snyk-org: deployapp-products
+          snyk-token: ${{ secrets.SNYK_TOKEN }}

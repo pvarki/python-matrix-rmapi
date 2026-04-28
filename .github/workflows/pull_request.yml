@@ -2,12 +2,11 @@ on:
     pull_request:
 
 jobs:
-
   versiontag:
     runs-on: ubuntu-latest
     if: github.ref != 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Check version tag
         run: |
           curl -f https://raw.githubusercontent.com/pvarki/python-matrix-rmapi/main/pyproject.toml -o /tmp/main_pyproject.toml || touch /tmp/main_pyproject.toml
@@ -25,10 +24,10 @@ jobs:
       matrix:
         python-version: ["3.11"] # , "3.12"]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
-      - uses: ./.github/actions/setup-python
+      - uses: pvarki/config-ci-library/.github/actions/setup-python@main
         with:
           python-version: ${{ matrix.python-version }}
       - name: Do pre-commit checks (black, lint, mypy)
@@ -50,8 +49,18 @@ jobs:
   docker_builds:
     runs-on: arc-runner-set
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Build test target
         run: docker build --target test -t matrixrmapi:test .
       - name: Build production target
         run: docker build --target production -t matrixrmapi:production .
+
+  snyk-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pvarki/config-ci-library/.github/actions/setup-python@main
+      - uses: pvarki/config-ci-library/.github/actions/snyk-test@main
+        with:
+          snyk-org: deployapp-products
+          snyk-token: ${{ secrets.SNYK_TOKEN }}
