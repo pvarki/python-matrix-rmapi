@@ -1277,7 +1277,7 @@ wheels = [
 
 [[package]]
 name = "matrixrmapi"
-version = "1.0.2"
+version = "1.0.3+260429"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
