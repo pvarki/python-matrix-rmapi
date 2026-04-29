@@ -234,9 +234,9 @@ Example of the effect of an increment::
     1.0.2-260420 ── bump ─┬─ major ─── 2.0.0+260422
                           ├─ minor ─── 1.1.0+260422
                           ├─ patch ─── 1.0.3+260422
-                          ╰─ release ─ 1.0.2+260422
+                          ╰─ build ─── 1.0.2+260422
 
-Please note that ``release`` should not be run on its own, we always want to increment the semantic version, while autoincrementing the calendar version simultaneously.
+Please note that ``build`` should not be run on its own, we always want to increment the semantic version, while autoincrementing the calendar version simultaneously.
 
 Testing a local Synapse server
 ------------------------------
