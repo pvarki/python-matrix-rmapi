@@ -110,7 +110,7 @@ export const HomePage = () => {
   const synapseDomain = `https://synapse.${currentHost}`;
 
   return (
-    <div className="flex justify-center">
+    <div className="flex justify-center" data-testid="home-page">
       <div className="w-full max-w-xl space-y-6">
         {/* Homeserver URL — big action at the top */}
         <div className="space-y-2">
@@ -123,10 +123,12 @@ export const HomePage = () => {
               readOnly
               value={synapseDomain}
               className="font-mono bg-secondary/30"
+              data-testid="synapse-url-input"
             />
             <Button
               className="cursor-pointer shrink-0"
               onClick={() => copyToClipboard(synapseDomain, t("common.copied"))}
+              data-testid="synapse-url-copy"
             >
               <p>{t("homepage.copyButton")}</p>
               <Copy className="ml-2 size-4" />
@@ -143,6 +145,7 @@ export const HomePage = () => {
             <button
               onClick={() => setActiveGuide("messaging")}
               className="flex items-start gap-3 rounded-lg border border-border bg-card p-4 text-left shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              data-testid="feature-guide-button-messaging"
             >
               <MessageSquare className="mt-0.5 size-5 shrink-0 text-primary" />
               <span className="text-sm font-medium leading-snug">
@@ -152,6 +155,7 @@ export const HomePage = () => {
             <button
               onClick={() => setActiveGuide("unit")}
               className="flex items-start gap-3 rounded-lg border border-border bg-card p-4 text-left shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              data-testid="feature-guide-button-unit"
             >
               <Users className="mt-0.5 size-5 shrink-0 text-primary" />
               <span className="text-sm font-medium leading-snug">

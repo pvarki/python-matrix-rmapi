@@ -1,6 +1,6 @@
 [project]
 name = "matrixrmapi"
-version = "1.0.3+260429"
+version = "1.0.4+260430"
 description = "Matrix service RASENMAEHER integration API service"
 authors = [{ name = "logaritmi", email = "logaritmi@FIXME.com" }]
 license = { text = "MIT" }
