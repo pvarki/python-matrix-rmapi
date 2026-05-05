@@ -39,3 +39,10 @@ replace = '__version__ = "{new_version}"'
 filename = "tests/test_matrixrmapi.py"
 search = '__version__ == "{current_version}"'
 replace = '__version__ == "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "uv.lock"
+search = '''name = "matrixrmapi"
+version = "{current_version}"'''
+replace = '''name = "matrixrmapi"
+version = "{new_version}"'''
