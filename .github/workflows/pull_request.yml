@@ -82,7 +82,7 @@ jobs:
         run: docker build --target production -t matrixrmapi:production .
   publish:
     needs: [version-check, test, snyk-test, docker-build-and-verify]
-    runs-on: ubuntu-latest  # arc-runner-set
+    runs-on: ubuntu-latest # arc-runner-set
     permissions:
       contents: read
       packages: write
