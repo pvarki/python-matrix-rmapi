@@ -1,3 +1,3 @@
 """Matrix product RASENMAEHER integration API service"""
 
-__version__ = "1.0.4+260505"  # NOTE Use `bump-my-version bump <patch/minor/major>` to bump versions correctly
+__version__ = "1.1.0+260512"  # NOTE Use `bump-my-version bump <patch/minor/major>` to bump versions correctly
