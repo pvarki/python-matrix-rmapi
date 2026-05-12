@@ -15,7 +15,7 @@ jobs:
           diff /tmp/main_version.txt /tmp/version.txt && exit 1 || exit 0
 
   test:
-    runs-on: arc-runner-set
+    runs-on: ubuntu-latest # arc-runner-set
     permissions:
       contents: write
       pull-requests: write
@@ -47,7 +47,7 @@ jobs:
           check_name: 'JUnit report (local)'
 
   docker_builds:
-    runs-on: arc-runner-set
+    runs-on: ubuntu-latest # arc-runner-set
     steps:
       - uses: actions/checkout@v6
       - name: Build test target
