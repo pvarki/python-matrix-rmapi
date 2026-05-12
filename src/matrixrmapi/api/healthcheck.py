@@ -14,4 +14,6 @@ router = APIRouter()
 @router.get("")
 async def request_healthcheck() -> ProductHealthCheckResponse:
     """Check that we are healthy, return accordingly"""
-    return ProductHealthCheckResponse(healthy=True, extra="Dummy, nothing actually checked")
+    return ProductHealthCheckResponse(
+        healthy=True, extra="Dummy, nothing actually checked"
+    )

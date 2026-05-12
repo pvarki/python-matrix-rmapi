@@ -98,7 +98,9 @@ async def test_force_join_already_in_room_skips() -> None:
     """403 + already in the room — idempotent, must not raise."""
     sa = _make_synapse()
     with patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post:  # pylint: disable=protected-access
-        mock_post.return_value = _fake(403, {"errcode": "M_FORBIDDEN", "error": "User is already in the room."})
+        mock_post.return_value = _fake(
+            403, {"errcode": "M_FORBIDDEN", "error": "User is already in the room."}
+        )
         await sa.force_join("!r:example.test", "@user:example.test")  # must not raise
 
 
@@ -107,7 +109,9 @@ async def test_force_join_other_403_raises() -> None:
     """403 with an unrecognised reason must propagate as HTTPStatusError."""
     sa = _make_synapse()
     with patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post:  # pylint: disable=protected-access
-        mock_post.return_value = _fake(403, {"errcode": "M_FORBIDDEN", "error": "You do not have permission."})
+        mock_post.return_value = _fake(
+            403, {"errcode": "M_FORBIDDEN", "error": "You do not have permission."}
+        )
         with pytest.raises(httpx.HTTPStatusError):
             await sa.force_join("!r:example.test", "@user:example.test")
 
@@ -179,7 +183,9 @@ async def test_kick_not_in_room_skips() -> None:
     """403 + not in the room — user already left; must not raise."""
     sa = _make_synapse()
     with patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post:  # pylint: disable=protected-access
-        mock_post.return_value = _fake(403, {"errcode": "M_FORBIDDEN", "error": "User is not in the room."})
+        mock_post.return_value = _fake(
+            403, {"errcode": "M_FORBIDDEN", "error": "User is not in the room."}
+        )
         await sa.kick("!r:example.test", "@user:example.test")  # must not raise
 
 
@@ -188,7 +194,9 @@ async def test_kick_other_403_raises() -> None:
     """403 with an unrecognised reason must propagate."""
     sa = _make_synapse()
     with patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post:  # pylint: disable=protected-access
-        mock_post.return_value = _fake(403, {"errcode": "M_FORBIDDEN", "error": "You do not have permission."})
+        mock_post.return_value = _fake(
+            403, {"errcode": "M_FORBIDDEN", "error": "You do not have permission."}
+        )
         with pytest.raises(httpx.HTTPStatusError):
             await sa.kick("!r:example.test", "@user:example.test")
 
@@ -206,7 +214,9 @@ async def test_create_room_sets_bot_at_power_200() -> None:
         mock_post.return_value = _fake(200, {"room_id": "!new:example.test"})
         await sa.create_room("TestRoom", "#test-room:example.test")
         body: Dict[str, Any] = mock_post.call_args.kwargs["json"]
-        users: Dict[str, int] = body.get("power_level_content_override", {}).get("users", {})
+        users: Dict[str, int] = body.get("power_level_content_override", {}).get(
+            "users", {}
+        )
         assert users.get("@bot:example.test") == 200
 
 
@@ -297,7 +307,10 @@ async def test_set_room_state_with_state_key() -> None:
     with patch.object(sa._client, "put", new_callable=AsyncMock) as mock_put:  # pylint: disable=protected-access
         mock_put.return_value = _fake(200, {})
         await sa.set_room_state(
-            "!r:example.test", "m.space.child", {"via": ["example.test"]}, state_key="!child:example.test"
+            "!r:example.test",
+            "m.space.child",
+            {"via": ["example.test"]},
+            state_key="!child:example.test",
         )
         url: str = mock_put.call_args.args[0]
         assert "m.space.child" in url
@@ -326,9 +339,10 @@ async def test_set_user_power_level_nonzero() -> None:
     sa = _make_synapse()
     client = sa._client  # pylint: disable=protected-access
     initial = {"users": {}, "users_default": 0}
-    with patch.object(client, "get", new_callable=AsyncMock) as mock_get, patch.object(
-        client, "put", new_callable=AsyncMock
-    ) as mock_put:
+    with (
+        patch.object(client, "get", new_callable=AsyncMock) as mock_get,
+        patch.object(client, "put", new_callable=AsyncMock) as mock_put,
+    ):
         mock_get.return_value = _fake(200, initial)
         mock_put.return_value = _fake(200, {})
         await sa.set_user_power_level("!r:example.test", "@user:example.test", 100)
@@ -342,9 +356,10 @@ async def test_set_user_power_level_zero_removes_user() -> None:
     sa = _make_synapse()
     client = sa._client  # pylint: disable=protected-access
     initial = {"users": {"@user:example.test": 100}, "users_default": 0}
-    with patch.object(client, "get", new_callable=AsyncMock) as mock_get, patch.object(
-        client, "put", new_callable=AsyncMock
-    ) as mock_put:
+    with (
+        patch.object(client, "get", new_callable=AsyncMock) as mock_get,
+        patch.object(client, "put", new_callable=AsyncMock) as mock_put,
+    ):
         mock_get.return_value = _fake(200, initial)
         mock_put.return_value = _fake(200, {})
         await sa.set_user_power_level("!r:example.test", "@user:example.test", 0)
@@ -380,9 +395,10 @@ async def test_set_power_level_in_rooms_calls_each_room() -> None:
     client = sa._client  # pylint: disable=protected-access
     room_ids = ["!r1:example.test", "!r2:example.test", "!r3:example.test"]
     initial = {"users": {}, "users_default": 0}
-    with patch.object(client, "get", new_callable=AsyncMock) as mock_get, patch.object(
-        client, "put", new_callable=AsyncMock
-    ) as mock_put:
+    with (
+        patch.object(client, "get", new_callable=AsyncMock) as mock_get,
+        patch.object(client, "put", new_callable=AsyncMock) as mock_put,
+    ):
         mock_get.return_value = _fake(200, initial)
         mock_put.return_value = _fake(200, {})
         await sa.set_power_level_in_rooms(room_ids, "@user:example.test", 100)

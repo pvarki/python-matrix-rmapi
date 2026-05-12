@@ -41,7 +41,9 @@ def get_app() -> FastAPI:
     init_logging(LOG_LEVEL)
     manifest = get_manifest()
     rm_base = manifest["rasenmaeher"]["init"]["base_uri"]
-    deployment_domain_regex = rm_base.replace(".", r"\.").replace("https://", r"https://(.*\.)?")
+    deployment_domain_regex = rm_base.replace(".", r"\.").replace(
+        "https://", r"https://(.*\.)?"
+    )
     LOGGER.debug("deployment_domain_regex=%s", deployment_domain_regex)
 
     app = FastAPI(
@@ -61,6 +63,8 @@ def get_app() -> FastAPI:
     app.include_router(router=all_routers_v2, prefix="/api/v2")
     app.state.pending_promotions = {}  # Dict[str, AdminAction]
 
-    LOGGER.info("API init done, setting log verbosity to '%s'.", logging.getLevelName(LOG_LEVEL))
+    LOGGER.info(
+        "API init done, setting log verbosity to '%s'.", logging.getLevelName(LOG_LEVEL)
+    )
 
     return app

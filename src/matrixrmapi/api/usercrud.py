@@ -41,7 +41,9 @@ def get_rooms(request: Request) -> Optional[Dict[str, str]]:
 
 def public_room_ids(rooms: Dict[str, str]) -> list[str]:
     """Room IDs for the space + the three public rooms (not admin channel)."""
-    return [rooms[k] for k in ("space", "general", "helpdesk", "offtopic") if k in rooms]
+    return [
+        rooms[k] for k in ("space", "general", "helpdesk", "offtopic") if k in rooms
+    ]
 
 
 @router.post("/created")
@@ -54,7 +56,10 @@ async def user_created(
     synapse = get_synapse(request)
     rooms = get_rooms(request)
     if synapse is None or rooms is None:
-        LOGGER.warning("Synapse not ready; skipping room joins for %s (auto_join_rooms will handle it)", user.callsign)
+        LOGGER.warning(
+            "Synapse not ready; skipping room joins for %s (auto_join_rooms will handle it)",
+            user.callsign,
+        )
         return OperationResultResponse(success=True)
     try:
         uid = matrix_user_id(user.callsign, get_server_domain())
@@ -92,13 +97,17 @@ async def user_revoked(
     return OperationResultResponse(success=True)
 
 
-async def apply_admin_action(request: Request, uid: str, action: AdminAction) -> OperationResultResponse:
+async def apply_admin_action(
+    request: Request, uid: str, action: AdminAction
+) -> OperationResultResponse:
     """Promote or demote *uid*; queue if Synapse is not yet ready."""
     synapse = get_synapse(request)
     rooms = get_rooms(request)
     if synapse is None or rooms is None:
         request.app.state.pending_promotions[uid] = action
-        LOGGER.info("Queued deferred %s for %s (Synapse not ready yet)", action.value, uid)
+        LOGGER.info(
+            "Queued deferred %s for %s (Synapse not ready yet)", action.value, uid
+        )
         return OperationResultResponse(success=True)
     try:
         level = 100 if action is AdminAction.PROMOTE else 0

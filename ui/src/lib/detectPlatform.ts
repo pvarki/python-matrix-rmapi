@@ -12,7 +12,8 @@ export const detectPlatform = (): Platform => {
   const ua =
     window.navigator.userAgent ||
     window.navigator.vendor ||
-    (window as any).opera;
+    (window as Window & { opera?: string }).opera ||
+    "";
 
   if (/android/i.test(ua)) return Platform.Android;
   if (/iPad|iPhone|iPod/.test(ua)) return Platform.iOS;

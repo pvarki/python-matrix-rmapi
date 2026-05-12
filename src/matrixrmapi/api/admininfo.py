@@ -18,6 +18,8 @@ router = APIRouter(dependencies=[Depends(MTLSHeader(auto_error=True))])
 async def admin_instruction_fragment() -> UserInstructionFragment:
     """Return user instructions, we use POST because the integration layer might not keep
     track of callsigns and certs by UUID and will probably need both for the instructions"""
-    template = Environment(loader=FileSystemLoader(TEMPLATES_PATH), autoescape=True).get_template("admininfo.html")
+    template = Environment(
+        loader=FileSystemLoader(TEMPLATES_PATH), autoescape=True
+    ).get_template("admininfo.html")
     result = UserInstructionFragment(html=template.render())
     return result

@@ -36,7 +36,9 @@ def _mock_synapse() -> AsyncMock:
 async def testapply_pending_promote_sets_power_and_joins_admin() -> None:
     """promote: power level 100 in public rooms, force-join admin channel."""
     synapse = _mock_synapse()
-    await apply_pending(cast(SynapseAdmin, synapse), ROOMS, {"@user:x": AdminAction.PROMOTE})
+    await apply_pending(
+        cast(SynapseAdmin, synapse), ROOMS, {"@user:x": AdminAction.PROMOTE}
+    )
 
     synapse.set_power_level_in_rooms.assert_called_once_with(PUBLIC_IDS, "@user:x", 100)
     synapse.force_join.assert_called_once_with("!admin:x", "@user:x")
@@ -46,7 +48,9 @@ async def testapply_pending_promote_sets_power_and_joins_admin() -> None:
 async def testapply_pending_demote_sets_power_and_kicks_admin() -> None:
     """demote: power level 0 in public rooms, kick from admin channel."""
     synapse = _mock_synapse()
-    await apply_pending(cast(SynapseAdmin, synapse), ROOMS, {"@user:x": AdminAction.DEMOTE})
+    await apply_pending(
+        cast(SynapseAdmin, synapse), ROOMS, {"@user:x": AdminAction.DEMOTE}
+    )
 
     synapse.set_power_level_in_rooms.assert_called_once_with(PUBLIC_IDS, "@user:x", 0)
     synapse.kick.assert_called_once_with("!admin:x", "@user:x")
@@ -72,7 +76,9 @@ async def testapply_pending_no_admin_room_skips_join() -> None:
     """If admin room is missing from rooms dict, no force_join/kick is attempted."""
     synapse = _mock_synapse()
     rooms_no_admin = {k: v for k, v in ROOMS.items() if k != "admin"}
-    await apply_pending(cast(SynapseAdmin, synapse), rooms_no_admin, {"@user:x": AdminAction.PROMOTE})
+    await apply_pending(
+        cast(SynapseAdmin, synapse), rooms_no_admin, {"@user:x": AdminAction.PROMOTE}
+    )
 
     synapse.force_join.assert_not_called()
 
@@ -115,7 +121,9 @@ async def testensure_room_returns_existing_room() -> None:
     """If the alias already exists, no room is created."""
     synapse = _mock_synapse()
     synapse.room_id_for_alias.return_value = "!existing:example.test"
-    result = await ensure_room(cast(SynapseAdmin, synapse), "General", "#general:example.test", False, False)
+    result = await ensure_room(
+        cast(SynapseAdmin, synapse), "General", "#general:example.test", False, False
+    )
     assert result == "!existing:example.test"
     synapse.create_room.assert_not_called()
 
@@ -126,6 +134,8 @@ async def testensure_room_creates_new_room() -> None:
     synapse = _mock_synapse()
     synapse.room_id_for_alias.return_value = None
     synapse.create_room.return_value = "!new:example.test"
-    result = await ensure_room(cast(SynapseAdmin, synapse), "General", "#general:example.test", False, False)
+    result = await ensure_room(
+        cast(SynapseAdmin, synapse), "General", "#general:example.test", False, False
+    )
     assert result == "!new:example.test"
     synapse.create_room.assert_called_once()

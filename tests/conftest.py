@@ -47,7 +47,11 @@ def rm_mtlsclient() -> Generator[TestClient, None, None]:
 
 def create_user_dict(callsign: str) -> Dict[str, str]:
     """return valid user dict for crud operations"""
-    return {"uuid": str(uuid.uuid4()), "callsign": callsign, "x509cert": "FIXME: insert dummy cert in CFSSL encoding"}
+    return {
+        "uuid": str(uuid.uuid4()),
+        "callsign": callsign,
+        "x509cert": "FIXME: insert dummy cert in CFSSL encoding",
+    }
 
 
 @pytest.fixture(scope="session")

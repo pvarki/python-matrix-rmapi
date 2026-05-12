@@ -205,10 +205,6 @@ Development
 
 TLDR:
 
-- Create and activate a Python 3.11 virtualenv (assuming virtualenvwrapper)::
-
-   mkvirtualenv -p `which python3.11` my_virtualenv
-
 - change to a branch::
 
     git checkout -b my_branch
@@ -218,6 +214,10 @@ TLDR:
     uv sync
     uv run prek install
     uv run prek run --all-files
+
+- Activate the project virtual environment::
+
+    source .venv/bin/activate
 
 - Ready to go.
 

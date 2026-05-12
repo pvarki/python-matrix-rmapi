@@ -1,18 +1,35 @@
 on:
-    pull_request:
+  pull_request:
 
 jobs:
-  versiontag:
+  version-check:
+    name: Check version increment
     runs-on: ubuntu-latest
-    if: github.ref != 'refs/heads/main'
     steps:
       - uses: actions/checkout@v6
-      - name: Check version tag
+      - uses: pvarki/config-ci-library/.github/actions/validate-bumpversion@main
+
+  pre-commit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - uses: pvarki/config-ci-library/.github/actions/setup-python@main
+        with:
+          python-version: "3.11"
+      - uses: pvarki/config-ci-library/.github/actions/setup-typescript@main
+        with:
+          node-version: "24"
+          pnpm-version: "11"
+          working-directory: ui
+      - name: Do pre-commit checks (black, lint, mypy)
         run: |
-          curl -f https://raw.githubusercontent.com/pvarki/python-matrix-rmapi/main/pyproject.toml -o /tmp/main_pyproject.toml || touch /tmp/main_pyproject.toml
-          grep "version = " pyproject.toml >/tmp/version.txt
-          grep "version = " /tmp/main_pyproject.toml >/tmp/main_version.txt
-          diff /tmp/main_version.txt /tmp/version.txt && exit 1 || exit 0
+          uv run docker/pre_commit_init.sh
 
   test:
     runs-on: ubuntu-latest # arc-runner-set
@@ -20,33 +37,32 @@ jobs:
       contents: write
       pull-requests: write
       checks: write
-    strategy:
-      matrix:
-        python-version: ["3.11"] # , "3.12"]
     steps:
       - uses: actions/checkout@v6
         with:
           submodules: recursive
       - uses: pvarki/config-ci-library/.github/actions/setup-python@main
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Do pre-commit checks (black, lint, mypy)
-        run: |
-          uv run docker/pre_commit_init.sh
+          python-version: "3.11"
+      - uses: pvarki/config-ci-library/.github/actions/setup-typescript@main
+        with:
+          node-version: "24"
+          pnpm-version: "11"
+          working-directory: ui
       - name: Test with pytest
         env:
-          SYNAPSE_REGISTRATION_SECRET: "ci-test-secret"  # pragma: allowlist secret
+          SYNAPSE_REGISTRATION_SECRET: "ci-test-secret" # pragma: allowlist secret
         run: |
           uv run py.test -v --junitxml=pytest.xml
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v4
         if: success() || failure() # always run even if the previous step fails
         with:
-          report_paths: '**/pytest*.xml'
+          report_paths: "**/pytest*.xml"
           detailed_summary: true
-          check_name: 'JUnit report (local)'
+          check_name: "JUnit report (local)"
 
-  docker_builds:
+  docker-build-and-verify:
     runs-on: ubuntu-latest # arc-runner-set
     steps:
       - uses: actions/checkout@v6
