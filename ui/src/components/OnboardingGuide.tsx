@@ -412,7 +412,7 @@ export function OnboardingHandler() {
             )}
             onLoad={() => setImageLoading(false)}
             onError={(e) => {
-              const el = e.currentTarget as HTMLImageElement;
+              const el = e.currentTarget;
               const filename = el.src.split("/").pop() || "";
               const fallback = `/assets/${filename}`;
               if (!el.src.includes("/assets/")) {
@@ -493,7 +493,7 @@ export function OnboardingHandler() {
             alt="Preview"
             className="max-w-full max-h-full object-contain"
             onError={(e) => {
-              const el = e.currentTarget as HTMLImageElement;
+              const el = e.currentTarget;
               const filename = el.src.split("/").pop() || "";
               const fallback = `/assets/${filename}`;
               if (!el.src.includes("/assets/")) {

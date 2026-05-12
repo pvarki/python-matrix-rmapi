@@ -27,7 +27,9 @@ class ProductComponent(BaseModel):  # pylint: disable=too-few-public-methods
 class ProductDescriptionExtended(BaseModel):  # pylint: disable=too-few-public-methods
     """Description of a product"""
 
-    shortname: str = Field(description="Short name for the product, used as slug/key in dicts and urls")
+    shortname: str = Field(
+        description="Short name for the product, used as slug/key in dicts and urls"
+    )
     title: str = Field(description="Fancy name for the product")
     icon: Optional[str] = Field(description="URL for icon")
     description: str = Field(description="Short-ish description of the product")
@@ -72,7 +74,9 @@ async def return_product_description(language: str) -> ProductDescription:
     "/{language}",
     response_model=ProductDescriptionExtended,
 )
-async def return_product_description_extended(language: str) -> ProductDescriptionExtended:
+async def return_product_description_extended(
+    language: str,
+) -> ProductDescriptionExtended:
     """Fetch description from each product in manifest"""
     docs_url = f"https://docs.pvarki.fi/{language}/docs/guides/matrix-guide"
 
@@ -84,7 +88,9 @@ async def return_product_description_extended(language: str) -> ProductDescripti
             description="""Matrix viestipalvelu""",
             language=language,
             docs=docs_url,
-            component=ProductComponent(type="component", ref=f"/ui/{PRODUCT_SHORTNAME}/remoteEntry.js"),
+            component=ProductComponent(
+                type="component", ref=f"/ui/{PRODUCT_SHORTNAME}/remoteEntry.js"
+            ),
         )
     if language == "sv":
         return ProductDescriptionExtended(
@@ -94,7 +100,9 @@ async def return_product_description_extended(language: str) -> ProductDescripti
             description="Matrix meddelandetjänst",
             language=language,
             docs=docs_url,
-            component=ProductComponent(type="component", ref=f"/ui/{PRODUCT_SHORTNAME}/remoteEntry.js"),
+            component=ProductComponent(
+                type="component", ref=f"/ui/{PRODUCT_SHORTNAME}/remoteEntry.js"
+            ),
         )
     return ProductDescriptionExtended(
         shortname=PRODUCT_SHORTNAME,
@@ -103,5 +111,7 @@ async def return_product_description_extended(language: str) -> ProductDescripti
         description="Matrix messaging service",
         language=language,
         docs=docs_url,
-        component=ProductComponent(type="component", ref=f"/ui/{PRODUCT_SHORTNAME}/remoteEntry.js"),
+        component=ProductComponent(
+            type="component", ref=f"/ui/{PRODUCT_SHORTNAME}/remoteEntry.js"
+        ),
     )

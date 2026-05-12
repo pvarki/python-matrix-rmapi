@@ -56,10 +56,10 @@ RUN apt-get update && apt-get install -y \
     # githublab ssh
     && mkdir -p -m 0700 ~/.ssh && ssh-keyscan gitlab.com github.com | sort > ~/.ssh/known_hosts \
     && true
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && apt-get install -y nodejs \
     && corepack enable \
-    && corepack prepare pnpm@latest --activate
+    && corepack prepare pnpm@11.1.0 --activate
 SHELL ["/bin/bash", "-lc"]
 # Copy only requirements, to cache them in docker layer:
 WORKDIR /pysetup
@@ -136,6 +136,7 @@ COPY ./docker/entrypoint-dev.sh /entrypoint-dev.sh
 RUN chmod +x /entrypoint-dev.sh
 WORKDIR /app
 RUN --mount=type=ssh uv sync \
+    && cd ui && CI=true pnpm install --frozen-lockfile \
     && true
 
 

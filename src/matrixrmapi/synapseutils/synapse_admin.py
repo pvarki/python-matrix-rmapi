@@ -25,7 +25,9 @@ def matrix_user_id(callsign: str, server_domain: str) -> str:
     """Build @localpart:domain from callsign. Raises ValueError for invalid callsigns."""
     localpart = callsign.lower()
     if not MATRIX_LOCALPART_RE.match(localpart):
-        raise ValueError(f"Callsign {callsign!r} produces invalid Matrix localpart: {localpart!r}")
+        raise ValueError(
+            f"Callsign {callsign!r} produces invalid Matrix localpart: {localpart!r}"
+        )
     return f"@{localpart}:{server_domain}"
 
 
@@ -57,7 +59,9 @@ class SynapseAdmin:
     # Initialisation
     # ------------------------------------------------------------------
 
-    async def setup(self, registration_secret: str, bot_username: str, token_file: Path) -> None:
+    async def setup(
+        self, registration_secret: str, bot_username: str, token_file: Path
+    ) -> None:
         """Acquire admin token: load from file or register bot if missing/invalid."""
         self._bot_user_id = f"@{bot_username}:{self._domain}"
         if token_file.exists():
@@ -136,7 +140,10 @@ class SynapseAdmin:
             timeout=30.0,
         )
 
-        if reg_resp.status_code == 400 and reg_resp.json().get("errcode") == "M_USER_IN_USE":
+        if (
+            reg_resp.status_code == 400
+            and reg_resp.json().get("errcode") == "M_USER_IN_USE"
+        ):
             LOGGER.critical(
                 "Bot user @%s:%s already exists but no valid token file was found. "
                 "Manual recovery: deactivate the bot via Synapse admin UI, "
@@ -144,7 +151,9 @@ class SynapseAdmin:
                 username,
                 self._domain,
             )
-            raise RuntimeError(f"Bot user already exists and cannot be recovered automatically: {username}")
+            raise RuntimeError(
+                f"Bot user already exists and cannot be recovered automatically: {username}"
+            )
 
         reg_resp.raise_for_status()
         return str(reg_resp.json()["access_token"])
@@ -219,12 +228,20 @@ class SynapseAdmin:
         )
         resp.raise_for_status()
 
-    async def set_room_state(self, room_id: str, event_type: str, content: Dict[str, Any], state_key: str = "") -> None:
+    async def set_room_state(
+        self,
+        room_id: str,
+        event_type: str,
+        content: Dict[str, Any],
+        state_key: str = "",
+    ) -> None:
         """Send a room state event."""
         path = f"{self._url}/_matrix/client/v3/rooms/{room_id}/state/{event_type}"
         if state_key:
             path = f"{path}/{quote(state_key, safe='')}"
-        resp = await self._client.put(path, headers=self._auth, json=content, timeout=10.0)
+        resp = await self._client.put(
+            path, headers=self._auth, json=content, timeout=10.0
+        )
         resp.raise_for_status()
 
     # ------------------------------------------------------------------
@@ -251,8 +268,14 @@ class SynapseAdmin:
             return
         if resp.status_code == 403:
             body = resp.json()
-            if body.get("errcode") == "M_FORBIDDEN" and "already in the room" in body.get("error", ""):
-                LOGGER.info("User %s is already in room %s; skipping force_join", user_id, room_id)
+            if body.get(
+                "errcode"
+            ) == "M_FORBIDDEN" and "already in the room" in body.get("error", ""):
+                LOGGER.info(
+                    "User %s is already in room %s; skipping force_join",
+                    user_id,
+                    room_id,
+                )
                 return
         resp.raise_for_status()
 
@@ -281,7 +304,9 @@ class SynapseAdmin:
         resp.raise_for_status()
         return dict(resp.json())
 
-    async def set_user_power_level(self, room_id: str, user_id: str, level: int) -> None:
+    async def set_user_power_level(
+        self, room_id: str, user_id: str, level: int
+    ) -> None:
         """Set a single user's power level in a room."""
         levels = await self.get_power_levels(room_id)
         users: Dict[str, int] = dict(levels.get("users", {}))
@@ -318,8 +343,12 @@ class SynapseAdmin:
         )
         if resp.status_code == 403:
             body = resp.json()
-            if body.get("errcode") == "M_FORBIDDEN" and "not in the room" in body.get("error", ""):
-                LOGGER.info("User %s is not in room %s; skipping kick", user_id, room_id)
+            if body.get("errcode") == "M_FORBIDDEN" and "not in the room" in body.get(
+                "error", ""
+            ):
+                LOGGER.info(
+                    "User %s is not in room %s; skipping kick", user_id, room_id
+                )
                 return
         resp.raise_for_status()
 
@@ -327,7 +356,9 @@ class SynapseAdmin:
     # Batch helpers used by usercrud
     # ------------------------------------------------------------------
 
-    async def set_power_level_in_rooms(self, room_ids: List[str], user_id: str, level: int) -> None:
+    async def set_power_level_in_rooms(
+        self, room_ids: List[str], user_id: str, level: int
+    ) -> None:
         """Set power level for user across multiple rooms."""
         for room_id in room_ids:
             await self.set_user_power_level(room_id, user_id, level)

@@ -23,19 +23,18 @@ const rootRoute = createRootRoute({
 const mtxRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "product/matrix/$",
-  component: () => {
-    const SAMPLE_DATA = { data: {} };
-    // @ts-ignore
-    return <App data={SAMPLE_DATA} />;
-  },
+  component: () => (
+    <App data={{}} meta={{ theme: "default", callsign: "DEV" }} />
+  ),
 });
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
   beforeLoad: () => {
+    // eslint-disable-next-line @typescript-eslint/only-throw-error
     throw redirect({
-      //@ts-ignore
+      // @ts-expect-error -- route not registered in this local router
       to: "/product/matrix",
     });
   },
@@ -53,7 +52,7 @@ declare module "@tanstack/react-router" {
 }
 
 if (__USE_GLOBAL_CSS__ == true) {
-  import("./index.css");
+  void import("./index.css");
 }
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

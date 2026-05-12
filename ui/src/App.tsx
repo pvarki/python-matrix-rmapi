@@ -35,19 +35,19 @@ const homeRoute = createRoute({
 const routeTree = rootRoute.addChildren([homeRoute]);
 
 interface Props {
-  data: {};
+  data: Record<string, unknown>;
   meta: MetaData;
 }
 
 export const PRODUCT_SHORTNAME = "matrix";
 
-export default ({ data, meta }: Props) => {
+const MatrixApp = ({ meta }: Props) => {
   const [ready, setReady] = useState(false);
-  const { t, i18n } = useTranslation(PRODUCT_SHORTNAME);
+  const { i18n } = useTranslation(PRODUCT_SHORTNAME);
 
   const router = useMemo(
     () => createRouter({ routeTree, basepath: "/product/matrix" }),
-    [data],
+    [],
   );
 
   useEffect(() => {
@@ -62,7 +62,7 @@ export default ({ data, meta }: Props) => {
       setReady(true);
     }
 
-    load();
+    void load();
   }, [i18n]);
 
   if (!ready) return null;
@@ -76,3 +76,5 @@ export default ({ data, meta }: Props) => {
     </MetaProvider>
   );
 };
+
+export default MatrixApp;

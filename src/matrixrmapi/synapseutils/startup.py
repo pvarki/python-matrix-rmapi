@@ -39,7 +39,9 @@ ROOM_TOPICS: Dict[str, str] = {
 }
 
 
-async def wait_for_synapse(synapse_url: str, retries: int = 60, interval: float = 5.0) -> bool:
+async def wait_for_synapse(
+    synapse_url: str, retries: int = 60, interval: float = 5.0
+) -> bool:
     """Poll Synapse /health until it responds 200. Returns True on success."""
     LOGGER.info("Waiting for Synapse at %s ...", synapse_url)
     async with httpx.AsyncClient() as client:
@@ -53,7 +55,9 @@ async def wait_for_synapse(synapse_url: str, retries: int = 60, interval: float 
                 pass
             if attempt < retries - 1:
                 await asyncio.sleep(interval)
-    LOGGER.error("Synapse not reachable after %d attempts — integration disabled", retries)
+    LOGGER.error(
+        "Synapse not reachable after %d attempts — integration disabled", retries
+    )
     return False
 
 
@@ -73,7 +77,9 @@ async def acquire_bot_token(synapse: SynapseAdmin) -> Tuple[bool, bool]:
         acquired = True
         # We are the init worker — register bot (idempotent: reads file if present)
         registration_secret = SYNAPSE_REGISTRATION_SECRET
-        await synapse.setup(registration_secret, SYNAPSE_BOT_USERNAME, SYNAPSE_TOKEN_FILE)
+        await synapse.setup(
+            registration_secret, SYNAPSE_BOT_USERNAME, SYNAPSE_TOKEN_FILE
+        )
         del registration_secret
         return True, True
     except filelock.Timeout:
@@ -103,25 +109,33 @@ async def acquire_bot_token(synapse: SynapseAdmin) -> Tuple[bool, bool]:
         return False, False
 
 
-async def ensure_room(synapse: SynapseAdmin, name: str, alias: str, is_space: bool, is_private: bool) -> str:
+async def ensure_room(
+    synapse: SynapseAdmin, name: str, alias: str, is_space: bool, is_private: bool
+) -> str:
     """Return room_id for alias, creating the room if it does not exist."""
     existing = await synapse.room_id_for_alias(alias)
     if existing:
         LOGGER.info("Room %s already exists: %s", alias, existing)
         return existing
-    room_id = await synapse.create_room(name, alias, is_space=is_space, is_private=is_private)
+    room_id = await synapse.create_room(
+        name, alias, is_space=is_space, is_private=is_private
+    )
     LOGGER.info("Created room %s -> %s", alias, room_id)
     return room_id
 
 
-async def ensure_rooms(synapse: SynapseAdmin, deployment: str, domain: str) -> Dict[str, str]:
+async def ensure_rooms(
+    synapse: SynapseAdmin, deployment: str, domain: str
+) -> Dict[str, str]:
     """Create space and rooms if they don't exist; return room IDs dict."""
     room_ids: Dict[str, str] = {}
     space_id: Optional[str] = None
 
     for key, alias_tpl, name_tpl, is_space, is_private in ROOMS_CONFIG:
         alias = f"#{alias_tpl.format(d=deployment)}:{domain}"
-        room_ids[key] = await ensure_room(synapse, name_tpl.format(d=deployment), alias, is_space, is_private)
+        room_ids[key] = await ensure_room(
+            synapse, name_tpl.format(d=deployment), alias, is_space, is_private
+        )
         if is_space:
             space_id = room_ids[key]
 
@@ -133,9 +147,13 @@ async def ensure_rooms(synapse: SynapseAdmin, deployment: str, domain: str) -> D
     return room_ids
 
 
-async def apply_pending(synapse: SynapseAdmin, rooms: Dict[str, str], pending: Dict[str, AdminAction]) -> None:
+async def apply_pending(
+    synapse: SynapseAdmin, rooms: Dict[str, str], pending: Dict[str, AdminAction]
+) -> None:
     """Apply promotions/demotions that were queued while Synapse was still starting."""
-    public_ids = [rooms[k] for k in ("space", "general", "helpdesk", "offtopic") if k in rooms]
+    public_ids = [
+        rooms[k] for k in ("space", "general", "helpdesk", "offtopic") if k in rooms
+    ]
     admin_id = rooms.get("admin")
     for uid, action in pending.items():
         try:
@@ -150,21 +168,29 @@ async def apply_pending(synapse: SynapseAdmin, rooms: Dict[str, str], pending: D
                     await synapse.kick(admin_id, uid)
                 LOGGER.info("Applied deferred demotion for %s", uid)
         except Exception as exc:  # pylint: disable=broad-except
-            LOGGER.error("Failed to apply deferred %s for %s: %s", action.value, uid, exc)
+            LOGGER.error(
+                "Failed to apply deferred %s for %s: %s", action.value, uid, exc
+            )
 
 
-async def configure_rooms_state(synapse: SynapseAdmin, rooms: Dict[str, str], deployment: str) -> None:
+async def configure_rooms_state(
+    synapse: SynapseAdmin, rooms: Dict[str, str], deployment: str
+) -> None:
     """Apply join rules, encryption, history visibility, topics and names to all rooms.
 
     All state events are idempotent in Matrix — safe to re-apply on every restart.
     """
-    name_by_key = {key: name_tpl.format(d=deployment) for key, _, name_tpl, _, _ in ROOMS_CONFIG}
+    name_by_key = {
+        key: name_tpl.format(d=deployment) for key, _, name_tpl, _, _ in ROOMS_CONFIG
+    }
     space_id = rooms["space"]
     LOGGER.info("Applying room state configuration (idempotent)")
     for key, room_id in rooms.items():
         await synapse.set_room_state(room_id, "m.room.name", {"name": name_by_key[key]})
         if key == "space":
-            await synapse.set_room_state(room_id, "m.room.join_rules", {"join_rule": "invite"})
+            await synapse.set_room_state(
+                room_id, "m.room.join_rules", {"join_rule": "invite"}
+            )
             # Allow space members to add child rooms and create new rooms in the space
             levels = await synapse.get_power_levels(room_id)
             events_levels = dict(levels.get("events", {}))
@@ -173,8 +199,12 @@ async def configure_rooms_state(synapse: SynapseAdmin, rooms: Dict[str, str], de
             await synapse.set_room_state(room_id, "m.room.power_levels", levels)
             LOGGER.info("Set space child permission (level 0) for space %s", room_id)
             continue
-        await synapse.set_room_state(room_id, "m.room.encryption", {"algorithm": "m.megolm.v1.aes-sha2"})
-        await synapse.set_room_state(room_id, "m.room.history_visibility", {"history_visibility": "joined"})
+        await synapse.set_room_state(
+            room_id, "m.room.encryption", {"algorithm": "m.megolm.v1.aes-sha2"}
+        )
+        await synapse.set_room_state(
+            room_id, "m.room.history_visibility", {"history_visibility": "joined"}
+        )
         # Ensure regular users can start calls and set their power levels.
         # Idempotent — safe to re-apply on every restart.
         levels = await synapse.get_power_levels(room_id)
@@ -187,7 +217,10 @@ async def configure_rooms_state(synapse: SynapseAdmin, rooms: Dict[str, str], de
             await synapse.set_room_state(
                 room_id,
                 "m.room.join_rules",
-                {"join_rule": "restricted", "allow": [{"type": "m.room_membership", "room_id": space_id}]},
+                {
+                    "join_rule": "restricted",
+                    "allow": [{"type": "m.room_membership", "room_id": space_id}],
+                },
             )
         topic = ROOM_TOPICS.get(key)
         if topic:
@@ -227,7 +260,9 @@ async def synapse_startup(app: FastAPI) -> None:
         except Exception as exc:  # pylint: disable=broad-except
             LOGGER.error("Room configuration failed (rooms still usable): %s", exc)
     else:
-        LOGGER.info("Follower worker: skipping room state configuration (handled by init worker)")
+        LOGGER.info(
+            "Follower worker: skipping room state configuration (handled by init worker)"
+        )
 
     # Expose rooms after configuration — prevents /promoted from racing with
     # configure_rooms_state's power-level read-modify-write on the space.
