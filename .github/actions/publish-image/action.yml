@@ -1,0 +1,174 @@
+# Copied from https://github.com/pvarki/config-ci-library/blob/main/.github/actions/publish-image/action.yml
+# Modified to maintain same image names with the versioning, release-please works with.
+name: "Publish Docker Image"
+description: "Build and push images to GHCR, Docker Hub & ACR"
+
+inputs:
+  # Naming
+  product:
+    description: "Product name (e.g. matrix, rasenmaeher). Normalized to lowercase with hyphens."
+    required: true
+  component:
+    description: "Component type. One of: integration, server, client, api, ui, worker, tool."
+    required: true
+  # Context
+  context:
+    description: "Docker build context path"
+    required: false
+    default: "."
+  target:
+    description: "Docker build target"
+    required: false
+    default: "production"
+  dockerfile:
+    description: "Path to Dockerfile"
+    required: false
+    default: "Dockerfile"
+  platforms:
+    description: "Target platforms"
+    required: false
+    default: "linux/amd64,linux/arm64"
+  extra-tag:
+    description: "Adds additional tag with <extra-tag>"
+    required: false
+    default: ""
+  build-args:
+    description: "Build args passed to docker build, one KEY=value per line."
+    required: false
+    default: ""
+  # DockerHub
+  dockerhub-username:
+    description: "Docker Hub username"
+    required: true
+  dockerhub-token:
+    description: "Docker Hub token"
+    required: true
+  # GitHub
+  github-token:
+    required: true
+    description: "Token to access GitHub"
+  # ACR
+  acr-repo:
+    description: "ACR hostname"
+    required: true
+  acr-username:
+    description: "ACR username"
+    required: true
+  acr-token:
+    description: "ACR token"
+    required: true
+
+outputs:
+  tags:
+    description: "Newline-separated list of tags pushed to GHCR, Docker Hub and ACR"
+    value: ${{ steps.meta.outputs.tags }}
+  image-name:
+    description: "Resolved image name in the form <owner>/<product>-<component>"
+    value: ${{ steps.imgname.outputs.full }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve image name
+      id: imgname
+      shell: bash
+      run: |
+        RAW_PRODUCT="${{ inputs.product }}"
+        RAW_COMPONENT="${{ inputs.component }}"
+        OWNER="${GITHUB_REPOSITORY_OWNER,,}"
+
+        # Normalize product: lowercase, underscores/spaces -> hyphens, collapse and trim hyphens
+        PRODUCT="${RAW_PRODUCT,,}"
+        PRODUCT="${PRODUCT//_/-}"
+        PRODUCT="${PRODUCT// /-}"
+        PRODUCT=$(echo "$PRODUCT" | tr -s '-')
+        PRODUCT="${PRODUCT#-}"
+        PRODUCT="${PRODUCT%-}"
+
+        if [ "$PRODUCT" != "$RAW_PRODUCT" ]; then
+          echo "::notice::Normalized product '$RAW_PRODUCT' -> '$PRODUCT'"
+        fi
+        if ! [[ "$PRODUCT" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
+          echo "::error::Product '$PRODUCT' contains invalid characters after normalization."
+          exit 1
+        fi
+        COMPONENT="${RAW_COMPONENT,,}"
+        if [ "$COMPONENT" != "$RAW_COMPONENT" ]; then
+          echo "::notice::Normalized component '$RAW_COMPONENT' -> '$COMPONENT'"
+        fi
+        ALLOWED="integration server client api ui worker tool"
+        if ! echo " $ALLOWED " | grep -q " $COMPONENT "; then
+          echo "::error::Invalid component '$COMPONENT'. Must be one of: $ALLOWED"
+          exit 1
+        fi
+
+        echo "full=${OWNER}/${PRODUCT}-${COMPONENT}" >> $GITHUB_OUTPUT
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ inputs.dockerhub-username }}
+        password: ${{ inputs.dockerhub-token }}
+
+    - name: Log in to GHCR
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ inputs.github-token }}
+
+    - name: Log in to ACR
+      uses: docker/login-action@v4
+      with:
+        registry: ${{ inputs.acr-repo }}
+        username: ${{ inputs.acr-username }}
+        password: ${{ inputs.acr-token }}
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v4
+
+    - name: Read version and compute dates
+      id: version
+      shell: bash
+      run: |
+        SEMVER=$(python3 -c "import json; print(json.load(open('.release-please-manifest.json'))['.'])")
+        VERSION="${SEMVER}+$(date -u +%y%m%d)"
+        BUILD_DATE=$(date -u +%Y%m%dT%H%M)
+        REF_NO_SLASHES=$(echo "${{ github.ref_name }}" | sed 's/\//-/g')
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "build_date=${BUILD_DATE}" >> $GITHUB_OUTPUT
+        echo "ref_no_slashes=${REF_NO_SLASHES}" >> $GITHUB_OUTPUT
+
+    - name: Generate image metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: |
+          ghcr.io/${{ steps.imgname.outputs.full }}
+          docker.io/${{ steps.imgname.outputs.full }}
+          ${{ inputs.acr-repo }}/${{ steps.imgname.outputs.full }}
+        tags: |
+          type=raw,value=${{ steps.version.outputs.version }}-${{ steps.version.outputs.build_date }},enable={{is_default_branch}}
+          type=raw,value=${{ steps.version.outputs.version }},enable={{is_default_branch}}
+          type=raw,value=${{ steps.version.outputs.version }}-pr${{ github.event.number }}-${{ steps.version.outputs.build_date }},enable=${{ github.event_name == 'pull_request' }}
+          type=raw,value=${{ steps.version.outputs.version }}-pr${{ github.event.number }},enable=${{ github.event_name == 'pull_request' }}
+          type=raw,value=${{ steps.version.outputs.ref_no_slashes }}
+          type=raw,value=latest,enable={{is_default_branch}}
+          type=raw,value=${{ inputs.extra-tag }},enable=${{ inputs.extra-tag != '' }}
+
+    - name: Build and push
+      uses: docker/build-push-action@v7
+      with:
+        context: ${{ inputs.context }}
+        file: ${{ inputs.dockerfile }}
+        platforms: ${{ inputs.platforms }}
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        target: ${{ inputs.target }}
+        build-args: ${{ inputs.build-args }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
