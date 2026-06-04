@@ -226,17 +226,20 @@ because pylint and mypy pre-commit hooks use the "system" python for now (becaus
 
 Versioning
 ^^^^^^^^^^
-Versioning is handled with ``bump-my version``. To increment, use ``bump-my-version bump <patch/minor/major>``
+This repo is **trialing** release-please (https://github.com/googleapis/release-please). Do
+**not** try to bump versions by hand, release-please derives the next
+SemVer ``MAJOR.MINOR.PATCH`` from Conventional Commit messages (``fix:`` bumps patch, ``feat:`` bumps
+minor, ``feat!:`` / ``BREAKING CHANGE:`` bumps major) and opens a release PR. Merging it tags the release,
+publishes the Docker image, and attaches the OpenAPI spec (``openapi.json``) to the GitHub release.
 
-Example of the effect of an increment::
+Only ``feat``, ``fix``, ``perf``, ``deps`` and ``revert`` land in the changelog; everything else is
+hidden. This is currently the release-please default split and can be reconfigured later.
 
-    bump-my-version show-bump
-    1.0.2-260420 ── bump ─┬─ major ─── 2.0.0+260422
-                          ├─ minor ─── 1.1.0+260422
-                          ├─ patch ─── 1.0.3+260422
-                          ╰─ build ─── 1.0.2+260422
+Merge PRs with **"Rebase and merge"**, never squash: this preserves the individual commits in git
+history and lets release-please parse every Conventional Commit.
 
-Please note that ``build`` should not be run on its own, we always want to increment the semantic version, while autoincrementing the calendar version simultaneously.
+Docker image tags reattach the ``+YYMMDD`` build component to the version (e.g. ``1.2.0+260604``),
+matching the previous bump-my-version scheme.
 
 Testing a local Synapse server
 ------------------------------
