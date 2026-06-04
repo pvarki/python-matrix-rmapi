@@ -40,3 +40,26 @@ jobs:
         run: |
           uv run matrixrmapi openapi > openapi.json
           gh release upload "${{ needs.release-please.outputs.tag_name }}" openapi.json --clobber
+
+  publish-image:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - name: Build and publish Docker image
+        uses: ./.github/actions/publish-image
+        with:
+          product: matrix
+          component: integration
+          dockerhub-username: ${{ vars.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          acr-repo: ${{ vars.ACR_REPO }}
+          acr-username: ${{ vars.ACR_USERNAME }}
+          acr-token: ${{ secrets.ACR_TOKEN }}

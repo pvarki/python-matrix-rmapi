@@ -84,7 +84,7 @@ jobs:
         with:
           submodules: recursive
       - name: Publish Docker image
-        uses: pvarki/config-ci-library/.github/actions/publish-image@main
+        uses: ./.github/actions/publish-image
         with:
           product: matrix
           component: integration
