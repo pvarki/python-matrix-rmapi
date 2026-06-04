@@ -1,0 +1,42 @@
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token: ${{ github.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  # OpenAPI docs to releases.
+  openapi:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - uses: pvarki/config-ci-library/.github/actions/setup-python@main
+        with:
+          python-version: "3.11"
+      - name: Generate and attach OpenAPI spec
+        env:
+          SYNAPSE_REGISTRATION_SECRET: "ci-test-secret" # pragma: allowlist secret
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          uv run matrixrmapi openapi > openapi.json
+          gh release upload "${{ needs.release-please.outputs.tag_name }}" openapi.json --clobber

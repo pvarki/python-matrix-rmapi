@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    ".": {
+      "release-type": "python",
+      "package-name": "matrixrmapi",
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": [
+        "src/matrixrmapi/__init__.py",
+        "tests/test_matrixrmapi.py",
+        {
+          "type": "toml",
+          "path": "uv.lock",
+          "jsonpath": "$.package[?(@.name.value=='matrixrmapi')].version"
+        }
+      ]
+    }
+  }
+}
