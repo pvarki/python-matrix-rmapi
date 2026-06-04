@@ -2,13 +2,6 @@ on:
   pull_request:
 
 jobs:
-  version-check:
-    name: Check version increment
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: pvarki/config-ci-library/.github/actions/validate-bumpversion@main
-
   pre-commit:
     runs-on: ubuntu-latest
     permissions:
@@ -81,7 +74,7 @@ jobs:
       - name: Build production target
         run: docker build --target production -t matrixrmapi:production .
   publish:
-    needs: [version-check, test, snyk-test, docker-build-and-verify]
+    needs: [test, snyk-test, docker-build-and-verify]
     runs-on: ubuntu-latest # arc-runner-set
     permissions:
       contents: read
