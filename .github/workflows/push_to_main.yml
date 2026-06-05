@@ -9,6 +9,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: pvarki/config-ci-library/.github/actions/setup-python@main
+        with:
+          python-version: "3.12"
       - uses: pvarki/config-ci-library/.github/actions/snyk-monitor@main
         with:
           snyk-org: deployapp-products

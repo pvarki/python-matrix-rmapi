@@ -5,7 +5,7 @@ description = "Matrix service RASENMAEHER integration API service"
 authors = [{ name = "logaritmi", email = "logaritmi@FIXME.com" }]
 license = { text = "MIT" }
 readme = "README.rst"
-requires-python = ">3.10,<4.0"
+requires-python = ">=3.12,<4.0"
 dependencies = [
     "libadvian>=1.4,<2.0",
     "libpvarki>=2.2,<3.0",
@@ -38,6 +38,10 @@ dev = [
 ]
 
 [tool.uv]
+# Install on linux for snyk scanning
+override-dependencies = [
+    "colorama>=0.4,<1.0",
+]
 constraint-dependencies = [
     "urllib3>=2.7.0",
     "click>=8.3.3",

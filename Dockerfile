@@ -3,7 +3,7 @@
 # Tox testsuite for multiple python version #
 #############################################
 FROM advian/tox-base:debian-bookworm as tox
-ARG PYTHON_VERSIONS="3.11 3.12"
+ARG PYTHON_VERSIONS="3.12"
 RUN export RESOLVED_VERSIONS=`pyenv_resolve $PYTHON_VERSIONS` \
     && echo RESOLVED_VERSIONS=$RESOLVED_VERSIONS \
     && for pyver in $RESOLVED_VERSIONS; do pyenv install -s $pyver; done \
@@ -23,7 +23,7 @@ RUN uv sync \
 ######################
 # Base builder image #
 ######################
-FROM python:3.11-bookworm as builder_base
+FROM python:3.12-bookworm as builder_base
 ENV \
   # locale
   LC_ALL=C.UTF-8 \
@@ -97,7 +97,7 @@ RUN --mount=type=ssh source /pysetup/.venv/bin/activate \
 #########################
 # Main production build #
 #########################
-FROM python:3.11-slim-bookworm as production
+FROM python:3.12-slim-bookworm as production
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 COPY --from=production_build /tmp/wheelhouse /tmp/wheelhouse
 COPY --from=production_build /ui_build /ui_build
