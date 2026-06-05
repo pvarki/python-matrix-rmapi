@@ -25,7 +25,7 @@ jobs:
           uv run docker/pre_commit_init.sh
 
   test:
-    runs-on: ubuntu-latest # arc-runner-set
+    runs-on: arc-runner-set
     permissions:
       contents: write
       pull-requests: write
@@ -68,7 +68,7 @@ jobs:
           snyk-token: ${{ secrets.SNYK_TOKEN }}
 
   docker-build-and-verify:
-    runs-on: ubuntu-latest # arc-runner-set
+    runs-on: arc-runner-set
     steps:
       - uses: actions/checkout@v6
       - name: Build test target
@@ -77,7 +77,7 @@ jobs:
         run: docker build --target production -t matrixrmapi:production .
   publish:
     needs: [test, snyk-test, docker-build-and-verify]
-    runs-on: ubuntu-latest # arc-runner-set
+    runs-on: arc-runner-set
     permissions:
       contents: read
       packages: write
