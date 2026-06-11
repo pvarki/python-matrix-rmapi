@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import tempfile
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import filelock
@@ -11,14 +13,17 @@ import httpx
 from fastapi import FastAPI
 
 from ..config import (
+    MAS_ADMIN_CLIENT_ID,
+    MAS_ADMIN_CLIENT_SECRET,
+    MAS_HEALTH_URL,
+    MAS_URL,
     SYNAPSE_BOT_USERNAME,
-    SYNAPSE_REGISTRATION_SECRET,
-    SYNAPSE_TOKEN_FILE,
     SYNAPSE_URL,
     get_manifest,
     get_server_domain,
 )
 from ..types import AdminAction, CALL_EVENTS_DEFAULT_LEVEL
+from .mas_admin import MasAdmin
 from .synapse_admin import SynapseAdmin
 
 LOGGER = logging.getLogger(__name__)
@@ -39,74 +44,62 @@ ROOM_TOPICS: Dict[str, str] = {
 }
 
 
-async def wait_for_synapse(
-    synapse_url: str, retries: int = 60, interval: float = 5.0
+async def wait_for_service(
+    name: str, url: str, retries: int = 60, interval: float = 5.0
 ) -> bool:
-    """Poll Synapse /health until it responds 200. Returns True on success."""
-    LOGGER.info("Waiting for Synapse at %s ...", synapse_url)
+    """Poll a service's /health until it responds 200. Returns True on success."""
+    LOGGER.info("Waiting for %s at %s ...", name, url)
     async with httpx.AsyncClient() as client:
         for attempt in range(retries):
             try:
-                resp = await client.get(f"{synapse_url}/health", timeout=5.0)
+                resp = await client.get(f"{url}/health", timeout=5.0)
                 if resp.status_code == 200:
-                    LOGGER.info("Synapse is ready")
+                    LOGGER.info("%s is ready", name)
                     return True
             except Exception:  # pylint: disable=broad-except  # nosec B110
                 pass
             if attempt < retries - 1:
                 await asyncio.sleep(interval)
     LOGGER.error(
-        "Synapse not reachable after %d attempts — integration disabled", retries
+        "%s not reachable after %d attempts — integration disabled", name, retries
     )
     return False
 
 
-async def acquire_bot_token(synapse: SynapseAdmin) -> Tuple[bool, bool]:
-    """Acquire the admin bot token using a file lock for worker coordination.
+async def acquire_bot_token(synapse: SynapseAdmin, mas: MasAdmin) -> Tuple[bool, bool]:
+    """Set up the bot session, using a file lock for worker coordination.
 
-    Returns ``(success, is_init_worker)``.  Only the init worker should run
-    room creation and configuration; follower workers merely load the token
-    and then derive existing room IDs.
+    Returns ``(success, is_init_worker)``.  Only the init worker
+    should run room creation and configuration.
     """
-    lock_path = SYNAPSE_TOKEN_FILE.parent / "synapse_init.lock"
+    lock_path = Path(tempfile.gettempdir()) / "matrixrmapi_synapse_init.lock"
     lock = filelock.FileLock(str(lock_path))
 
-    acquired = False
+    is_init = False
     try:
         lock.acquire(timeout=0.0)
-        acquired = True
-        # We are the init worker — register bot (idempotent: reads file if present)
-        registration_secret = SYNAPSE_REGISTRATION_SECRET
-        await synapse.setup(
-            registration_secret, SYNAPSE_BOT_USERNAME, SYNAPSE_TOKEN_FILE
-        )
-        del registration_secret
-        return True, True
+        is_init = True
     except filelock.Timeout:
-        LOGGER.warning("Another worker is initialising the Synapse bot, waiting ...")
+        LOGGER.info("Another worker is initialising the Synapse bot, waiting ...")
+        # filelock acquisition is blocking — poll so the event loop keeps running
+        for _ in range(60):
+            try:
+                lock.acquire(timeout=0.0)
+                break
+            except filelock.Timeout:
+                await asyncio.sleep(2)
+        else:
+            LOGGER.error("Init worker never released the lock — integration disabled")
+            return False, False
+
+    try:
+        await synapse.setup(SYNAPSE_BOT_USERNAME, mas)
+        return True, is_init
     except Exception as exc:  # pylint: disable=broad-except
-        LOGGER.error("Bot token acquisition failed: %s", exc)
+        LOGGER.error("Bot session setup failed: %s", exc)
         return False, False
     finally:
-        if acquired:
-            lock.release()
-
-    # Non-init worker: wait for the token file to appear
-    for _ in range(60):
-        if SYNAPSE_TOKEN_FILE.exists():
-            break
-        await asyncio.sleep(2)
-    else:
-        LOGGER.error("Token file never appeared after waiting — integration disabled")
-        return False, False
-
-    # Load and validate the token written by the init worker
-    try:
-        await synapse.setup("", SYNAPSE_BOT_USERNAME, SYNAPSE_TOKEN_FILE)
-        return True, False
-    except Exception as exc:  # pylint: disable=broad-except
-        LOGGER.error("Failed to load bot token from file: %s", exc)
-        return False, False
+        lock.release()
 
 
 async def ensure_room(
@@ -228,9 +221,35 @@ async def configure_rooms_state(
     LOGGER.info("Room state configuration applied")
 
 
+def setup_mas_admin(app: FastAPI) -> Optional[MasAdmin]:
+    """Build the MAS admin client from the shared client id and secret."""
+    if not MAS_ADMIN_CLIENT_SECRET:
+        LOGGER.error(
+            "MAS_ADMIN_CLIENT_SECRET not set — deactivation "
+            "and bot session creation disabled"
+        )
+        return None
+    if not MAS_ADMIN_CLIENT_ID:
+        LOGGER.error(
+            "MAS_ADMIN_CLIENT_ID not set — deactivation "
+            "and bot session creation disabled"
+        )
+        return None
+    mas = MasAdmin(MAS_URL, MAS_ADMIN_CLIENT_ID, MAS_ADMIN_CLIENT_SECRET)
+    app.state.mas = mas
+    return mas
+
+
 async def synapse_startup(app: FastAPI) -> None:
-    """Background task: connect to Synapse, create bot and rooms."""
-    if not await wait_for_synapse(SYNAPSE_URL):
+    """Background task: connect to MAS and Synapse, create bot and rooms."""
+    mas = setup_mas_admin(app)
+    if mas is None:
+        LOGGER.error("No MAS admin client — Matrix integration disabled")
+        return
+
+    if not await wait_for_service("MAS", MAS_HEALTH_URL):
+        return
+    if not await wait_for_service("Synapse", SYNAPSE_URL):
         return
 
     manifest = get_manifest()
@@ -239,7 +258,7 @@ async def synapse_startup(app: FastAPI) -> None:
 
     synapse = SynapseAdmin(SYNAPSE_URL, domain)
 
-    ok, is_init = await acquire_bot_token(synapse)
+    ok, is_init = await acquire_bot_token(synapse, mas)
     if not ok:
         await synapse.close()
         return

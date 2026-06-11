@@ -4,8 +4,11 @@ from typing import Dict, Any, cast
 from pathlib import Path
 import json
 import functools
+import logging
 
 from starlette.config import Config
+
+LOGGER = logging.getLogger(__name__)
 
 cfg = Config()  # not supporting .env files anymore because https://github.com/encode/starlette/discussions/2446
 
@@ -16,22 +19,13 @@ TEMPLATES_PATH: Path = cfg(
 
 SYNAPSE_URL: str = cfg("SYNAPSE_URL", default="http://synapse:8008")
 
-
-def _require_nonempty(value: str) -> str:
-    if not value:
-        raise ValueError("SYNAPSE_REGISTRATION_SECRET must not be empty")
-    return value
-
-
-SYNAPSE_REGISTRATION_SECRET: str = cfg(
-    "SYNAPSE_REGISTRATION_SECRET", cast=_require_nonempty
-)
+# MAS internal listener: health, oauth, admin API
+MAS_URL: str = cfg("MAS_URL", default="http://mas:8081")
+MAS_HEALTH_URL: str = cfg("MAS_HEALTH_URL", default="http://mas:8081")
+# Admin API client, shared with MAS via the environment. ID is required to be ULID.
+MAS_ADMIN_CLIENT_ID: str = cfg("MAS_ADMIN_CLIENT_ID", default="")
+MAS_ADMIN_CLIENT_SECRET: str = cfg("MAS_ADMIN_CLIENT_SECRET", default="")
 SYNAPSE_BOT_USERNAME: str = cfg("SYNAPSE_BOT_USERNAME", default="matrixrmapi-bot")
-SYNAPSE_TOKEN_FILE: Path = cfg(
-    "SYNAPSE_TOKEN_FILE",
-    cast=Path,
-    default=Path("/data/persistent/synapse_admin_token"),
-)
 
 
 @functools.cache

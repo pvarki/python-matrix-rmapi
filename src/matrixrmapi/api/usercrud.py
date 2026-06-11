@@ -5,12 +5,14 @@ from __future__ import annotations
 import logging
 from typing import Dict, Optional
 
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request
 from libpvarki.middleware import MTLSHeader
 from libpvarki.schemas.generic import OperationResultResponse
 from libpvarki.schemas.product import UserCRUDRequest
 
 from ..config import get_manifest, get_server_domain
+from ..synapseutils.mas_admin import MasAdmin
 from ..synapseutils.synapse_admin import SynapseAdmin, matrix_user_id
 from ..types import AdminAction
 
@@ -30,6 +32,12 @@ def comes_from_rm(request: Request) -> None:
 def get_synapse(request: Request) -> Optional[SynapseAdmin]:
     """Return SynapseAdmin from app state, or None if not yet ready."""
     val: Optional[SynapseAdmin] = getattr(request.app.state, "synapse", None)
+    return val
+
+
+def get_mas(request: Request) -> Optional[MasAdmin]:
+    """Return MasAdmin from app state, or None if not yet ready."""
+    val: Optional[MasAdmin] = getattr(request.app.state, "mas", None)
     return val
 
 
@@ -77,23 +85,29 @@ async def user_revoked(
     user: UserCRUDRequest,
     request: Request,
 ) -> OperationResultResponse:
-    """Device cert revoked — deactivate and erase user from Synapse."""
+    """Device cert revoked — deactivate user in MAS (MAS erases them from Synapse
+    and invalidates their sessions)."""
     comes_from_rm(request)
-    synapse = get_synapse(request)
-    if synapse is None:
-        LOGGER.warning("Synapse not ready; cannot deactivate %s", user.callsign)
+    mas = get_mas(request)
+    if mas is None:
+        LOGGER.warning("MAS not ready; cannot deactivate %s", user.callsign)
         return OperationResultResponse(success=True)
     try:
-        uid = matrix_user_id(user.callsign, get_server_domain())
+        # validates the callsign
+        matrix_user_id(user.callsign, get_server_domain())
     except ValueError as exc:
         LOGGER.error("Invalid callsign for Matrix: %s", exc)
         return OperationResultResponse(success=False)
+    localpart = user.callsign.lower()
     try:
-        await synapse.deactivate(uid)
-    except Exception as exc:  # pylint: disable=broad-except
-        LOGGER.error("Failed to deactivate %s in Synapse: %s", uid, exc)
+        deactivated = await mas.deactivate_user(localpart)
+    except httpx.HTTPError as exc:
+        LOGGER.error("Failed to deactivate %s in MAS: %s", localpart, exc)
         return OperationResultResponse(success=False)
-    LOGGER.info("Deactivated and erased %s from Synapse", uid)
+    if deactivated:
+        LOGGER.info("Deactivated %s in MAS (erased from Synapse)", localpart)
+    else:
+        LOGGER.info("%s not in MAS (never logged in); nothing to deactivate", localpart)
     return OperationResultResponse(success=True)
 
 

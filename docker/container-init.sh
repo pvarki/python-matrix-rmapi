@@ -38,7 +38,7 @@ cat <<EOF > /tmp/manifest.json
   },
   "oidc": {
     "client_registration": {
-      "client_name": "Synapse"
+      "client_name": "MAS"
     }
   }
 }
@@ -52,7 +52,7 @@ until /kc_client_init get_jwt /tmp/manifest.json || [ $COUNT -eq $MAX_RETRIES ];
   ((COUNT++))
 done
 
-# Register the synapse server as an OIDC integration
+# Register the Matrix Authentication Service as an OIDC integration
 /kc_client_init register_oidc /tmp/manifest.json
 
 if [ -f /data/persistent/firstrun.done ]

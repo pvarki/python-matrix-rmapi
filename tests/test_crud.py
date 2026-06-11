@@ -3,6 +3,9 @@
 from typing import Dict
 import logging
 import uuid
+from unittest.mock import AsyncMock
+
+import httpx
 from fastapi.testclient import TestClient
 
 from matrixrmapi.config import get_server_domain
@@ -41,12 +44,58 @@ def test_update(norppa11: Dict[str, str], rm_mtlsclient: TestClient) -> None:
 
 
 def test_revoke(norppa11: Dict[str, str], rm_mtlsclient: TestClient) -> None:
-    """Check that revoking user works"""
+    """Check that revoking user works (MAS not ready -> success with warning)"""
     resp = rm_mtlsclient.post("/api/v1/users/revoked", json=norppa11)
     assert resp.status_code == 200
     payload = resp.json()
     assert "success" in payload
     assert payload["success"]
+
+
+def test_revoke_deactivates_in_mas(
+    norppa11: Dict[str, str], rm_mtlsclient: TestClient
+) -> None:
+    """When MAS is ready, /revoked must deactivate the user via the MAS admin API"""
+    mas = AsyncMock()
+    mas.deactivate_user.return_value = True
+    APP.state.mas = mas
+    try:
+        resp = rm_mtlsclient.post("/api/v1/users/revoked", json=norppa11)
+        assert resp.status_code == 200
+        assert resp.json()["success"] is True
+        mas.deactivate_user.assert_awaited_once_with("norppa11a")
+    finally:
+        del APP.state.mas
+
+
+def test_revoke_user_not_in_mas(
+    norppa11: Dict[str, str], rm_mtlsclient: TestClient
+) -> None:
+    """User that never logged in (absent from MAS) still revokes successfully"""
+    mas = AsyncMock()
+    mas.deactivate_user.return_value = False
+    APP.state.mas = mas
+    try:
+        resp = rm_mtlsclient.post("/api/v1/users/revoked", json=norppa11)
+        assert resp.status_code == 200
+        assert resp.json()["success"] is True
+    finally:
+        del APP.state.mas
+
+
+def test_revoke_mas_error_fails(
+    norppa11: Dict[str, str], rm_mtlsclient: TestClient
+) -> None:
+    """A MAS API failure must be reported as success=False"""
+    mas = AsyncMock()
+    mas.deactivate_user.side_effect = httpx.ConnectError("boom")
+    APP.state.mas = mas
+    try:
+        resp = rm_mtlsclient.post("/api/v1/users/revoked", json=norppa11)
+        assert resp.status_code == 200
+        assert resp.json()["success"] is False
+    finally:
+        del APP.state.mas
 
 
 def test_promote(norppa11: Dict[str, str], rm_mtlsclient: TestClient) -> None:

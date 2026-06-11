@@ -25,10 +25,9 @@ Startup sequence
 
 The startup runs as a background task so the HTTP server is available immediately::
 
-    1. Poll GET /health on Synapse until it responds 200 (up to 5 minutes).
-    2. Acquire a file lock and register the admin bot via the Synapse HMAC-signed
-       registration endpoint (idempotent: if a valid token file already exists,
-       re-registration is skipped).
+    1. Poll GET /health on MAS and Synapse until they respond 200 (up to 5 minutes each).
+    2. Acquire a file lock; ensure the bot user exists in MAS and create its access token
+       via the MAS admin API (held in memory, replaced automatically before expiry).
     3. Remove rate-limiting for the bot user so concurrent room operations never hit 429.
     4. Ensure the Space and four rooms exist (creates them if missing, looks them up by
        alias otherwise).
@@ -78,8 +77,9 @@ User lifecycle endpoints
     ``homeserver.yaml`` will join the user when they first log in via OIDC.
 
 ``POST /api/v1/users/revoked``
-    Device certificate revoked. Deactivates and erases the user from Synapse (their messages
-    are removed from the server). If Synapse is not ready yet, returns success with a warning.
+    Device certificate revoked. Deactivates the user via MAS, erasing them from Synapse
+    (their messages are removed) and invalidating their sessions.
+    If MAS is not ready yet, returns success with a warning.
 
 ``POST /api/v1/users/promoted``
     User promoted to admin in Deploy App. Sets the user's power level to 100 in the Space and
@@ -116,18 +116,38 @@ Configuration
    * - ``SYNAPSE_URL``
      - ``http://synapse:8008``
      - Internal URL of the Synapse homeserver
-   * - ``SYNAPSE_REGISTRATION_SECRET``
-     - *(required)*
-     - Shared secret for bot registration (HMAC-SHA1)
+   * - ``MAS_URL``
+     - ``http://mas:8081``
+     - Internal URL of the MAS internal listener (oauth + admin API)
+   * - ``MAS_HEALTH_URL``
+     - ``http://mas:8081``
+     - Internal URL of the MAS health listener
+   * - ``MAS_ADMIN_CLIENT_ID``
+     - *(unset)*
+     - Admin client id (ULID); the same value is configured in the MAS container
+   * - ``MAS_ADMIN_CLIENT_SECRET``
+     - *(unset)*
+     - Admin client secret; the same value is configured in the MAS container
    * - ``SYNAPSE_BOT_USERNAME``
      - ``matrixrmapi-bot``
      - Local part of the admin bot Matrix user
-   * - ``SYNAPSE_TOKEN_FILE``
-     - ``/data/persistent/synapse_admin_token``
-     - File where the bot's access token is cached between restarts
    * - ``SERVER_DOMAIN``
      - *(from kraftwerk manifest)*
      - Matrix server_name; derived automatically from the product DNS label
+
+Matrix Authentication Service
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Synapse delegates authentication to MAS (`element-hq/matrix-authentication-service`_).
+This service uses the MAS admin API at ``MAS_URL`` for user provisioning, deactivation
+and bot token creation, authenticating via the ``client_credentials`` grant of an OAuth2
+client listed in MAS's ``policy.data.admin_clients``. The admin client id (a ULID, as
+required by MAS — a public identifier) comes from
+``MAS_ADMIN_CLIENT_ID`` and must match the client configured in MAS, with the shared
+secret in ``MAS_ADMIN_CLIENT_SECRET``. The bot token is short-lived, held in memory
+only, and replaced automatically before it expires.
+
+.. _element-hq/matrix-authentication-service: https://github.com/element-hq/matrix-authentication-service
 
 Docker
 ------
