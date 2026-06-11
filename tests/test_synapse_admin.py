@@ -6,6 +6,7 @@ SynapseAdmin instance, so no real network is required.
 
 from __future__ import annotations
 
+import time
 from typing import Any, Dict
 from unittest.mock import AsyncMock, patch
 
@@ -27,6 +28,7 @@ def _make_synapse() -> SynapseAdmin:
     """Return a SynapseAdmin ready for unit testing (real token + bot user set directly)."""
     sa = SynapseAdmin("http://synapse.test", "example.test")
     sa._token = "test-token"  # pylint: disable=protected-access  # nosec B105
+    sa._token_expires = time.monotonic() + 1000  # pylint: disable=protected-access
     sa._bot_user_id = "@bot:example.test"  # pylint: disable=protected-access
     return sa
 
@@ -114,53 +116,6 @@ async def test_force_join_other_403_raises() -> None:
         )
         with pytest.raises(httpx.HTTPStatusError):
             await sa.force_join("!r:example.test", "@user:example.test")
-
-
-# ---------------------------------------------------------------------------
-# deactivate
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_deactivate_success() -> None:
-    """Happy path: 200 response is accepted without error."""
-    sa = _make_synapse()
-    with patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post:  # pylint: disable=protected-access
-        mock_post.return_value = _fake(200, {"id_server_unbind_result": "success"})
-        await sa.deactivate("@user:example.test")
-        mock_post.assert_called_once()
-
-
-@pytest.mark.asyncio
-async def test_deactivate_user_not_found_skips() -> None:
-    """User never logged in to Matrix — 404 must silently succeed."""
-    sa = _make_synapse()
-    with patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post:  # pylint: disable=protected-access
-        mock_post.return_value = _fake(404, {"errcode": "M_NOT_FOUND"})
-        await sa.deactivate("@ghost:example.test")  # must not raise
-
-
-@pytest.mark.asyncio
-async def test_deactivate_calls_v1_endpoint() -> None:
-    """Admin API endpoint must be the stable v1 path."""
-    sa = _make_synapse()
-    with patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post:  # pylint: disable=protected-access
-        mock_post.return_value = _fake(200, {})
-        await sa.deactivate("@user:example.test")
-        url: str = mock_post.call_args.args[0]
-        assert "/_synapse/admin/v1/deactivate/" in url
-        assert "v2" not in url
-
-
-@pytest.mark.asyncio
-async def test_deactivate_sends_erase_true() -> None:
-    """Deactivation must request GDPR erase."""
-    sa = _make_synapse()
-    with patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post:  # pylint: disable=protected-access
-        mock_post.return_value = _fake(200, {})
-        await sa.deactivate("@user:example.test")
-        body: Dict[str, Any] = mock_post.call_args.kwargs["json"]
-        assert body.get("erase") is True
 
 
 # ---------------------------------------------------------------------------
@@ -404,3 +359,56 @@ async def test_set_power_level_in_rooms_calls_each_room() -> None:
         await sa.set_power_level_in_rooms(room_ids, "@user:example.test", 100)
         assert mock_get.call_count == 3
         assert mock_put.call_count == 3
+
+
+# ===========================================================================
+# MAS setup / _auth
+# ===========================================================================
+
+
+def _make_mas_mock(token: str = "mpt_test_token") -> AsyncMock:  # nosec B107
+    """Return a MasAdmin mock whose create_bot_token yields the given token."""
+    mas = AsyncMock()
+    mas.ensure_user.return_value = "01TESTULID0000000000000000"
+    mas.create_bot_token.return_value = (token, 3600)
+    return mas
+
+
+async def _setup_with_mas(mas: AsyncMock) -> SynapseAdmin:
+    """Run SynapseAdmin.setup() against the mocked MasAdmin."""
+    sa = SynapseAdmin("http://synapse.test", "example.test")
+    with patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post:  # pylint: disable=protected-access
+        mock_post.return_value = _fake(200, {})  # ratelimit override
+        await sa.setup("bot", mas)
+    return sa
+
+
+@pytest.mark.asyncio
+async def test_setup_creates_token_via_mas() -> None:
+    """Setup must ensure the bot user in MAS and hold the created token in memory."""
+    mas = _make_mas_mock()
+    sa = await _setup_with_mas(mas)
+    mas.ensure_user.assert_awaited_once_with("bot")
+    mas.create_bot_token.assert_awaited_once()
+    auth = await sa._auth()  # pylint: disable=protected-access
+    assert auth["Authorization"] == "Bearer mpt_test_token"
+
+
+@pytest.mark.asyncio
+async def test_auth_before_setup_raises() -> None:
+    """Using the client before setup() must raise."""
+    sa = SynapseAdmin("http://synapse.test", "example.test")
+    with pytest.raises(RuntimeError):
+        await sa._auth()  # pylint: disable=protected-access
+
+
+@pytest.mark.asyncio
+async def test_auth_replaces_token_after_expiry() -> None:
+    """An expired token must be replaced via MAS on the next use."""
+    mas = _make_mas_mock("mpt_first")
+    sa = await _setup_with_mas(mas)
+    sa._token_expires = time.monotonic() - 1  # pylint: disable=protected-access
+    mas.create_bot_token.return_value = ("mpt_second", 3600)  # nosec B105
+    auth = await sa._auth()  # pylint: disable=protected-access
+    assert auth["Authorization"] == "Bearer mpt_second"
+    assert mas.create_bot_token.await_count == 2

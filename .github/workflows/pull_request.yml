@@ -44,8 +44,6 @@ jobs:
           pnpm-version: "11"
           working-directory: ui
       - name: Test with pytest
-        env:
-          SYNAPSE_REGISTRATION_SECRET: "ci-test-secret" # pragma: allowlist secret
         run: |
           uv run py.test -v --junitxml=pytest.xml
       - name: Publish Test Report

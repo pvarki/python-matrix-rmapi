@@ -35,7 +35,6 @@ jobs:
           python-version: "3.12"
       - name: Generate and attach OpenAPI spec
         env:
-          SYNAPSE_REGISTRATION_SECRET: "ci-test-secret" # pragma: allowlist secret
           GH_TOKEN: ${{ github.token }}
         run: |
           uv run matrixrmapi openapi > openapi.json

@@ -15,6 +15,7 @@ from libpvarki.logging import init_logging
 from matrixrmapi import __version__
 from .config import LOG_LEVEL, get_manifest
 from .api import all_routers, all_routers_v2
+from .synapseutils.mas_admin import MasAdmin
 from .synapseutils.synapse_admin import SynapseAdmin
 from .synapseutils.startup import synapse_startup
 
@@ -34,6 +35,9 @@ async def app_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         synapse: Optional[SynapseAdmin] = getattr(app.state, "synapse", None)
         if synapse:
             await synapse.close()
+        mas: Optional[MasAdmin] = getattr(app.state, "mas", None)
+        if mas:
+            await mas.close()
 
 
 def get_app() -> FastAPI:
