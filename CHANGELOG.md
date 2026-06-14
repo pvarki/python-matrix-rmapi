@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/pvarki/python-matrix-rmapi/compare/v1.2.0...v1.2.1) (2026-06-14)
+
+
+### Bug Fixes
+
+* add the missing -local suffix to local build action (why is it not using the common one ??) ([e4d486e](https://github.com/pvarki/python-matrix-rmapi/commit/e4d486e5ab55eb514f5230e74705e2cc361fe6e9))
+
 ## [1.2.0](https://github.com/pvarki/python-matrix-rmapi/compare/v1.1.2...v1.2.0) (2026-06-14)
 
 
