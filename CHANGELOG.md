@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.2.0](https://github.com/pvarki/python-matrix-rmapi/compare/v1.1.2...v1.2.0) (2026-06-14)
+
+
+### Features
+
+* allow manual triggering of CI jobs ([b36a04f](https://github.com/pvarki/python-matrix-rmapi/commit/b36a04f3bf7237e67672e9ab62bbe8a18133890c))
+
+
+### Bug Fixes
+
+* **release-please:** do not include component in tag ([a17cd1e](https://github.com/pvarki/python-matrix-rmapi/commit/a17cd1e2416c09d49de3652625f849ac4cefe762))
+
+
+### Documentation
+
+* write changelogs for past versions ([cb90f68](https://github.com/pvarki/python-matrix-rmapi/commit/cb90f68cec7d38d5e49b0a2fcc02e89dc68f18d3))
+
 ## [1.1.2](https://github.com/pvarki/python-matrix-rmapi/releases/tag/v1.1.2) (2026-06-09)
 
 
