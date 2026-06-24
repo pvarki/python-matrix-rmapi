@@ -103,8 +103,8 @@ COPY --from=production_build /tmp/wheelhouse /tmp/wheelhouse
 COPY --from=production_build /ui_build /ui_build
 COPY --from=production_build /docker-entrypoint.sh /docker-entrypoint.sh
 COPY --from=production_build /container-init.sh /container-init.sh
-COPY --from=pvarki/kw_product_init:latest /kw_product_init /kw_product_init
-COPY --from=pvarki/kc_client_init:latest /kc_client_init /kc_client_init
+COPY --from=ghcr.io/pvarki/kraftwerk-helper-tool:1.3.0-260513 /kw_product_init /kw_product_init
+COPY --from=ghcr.io/pvarki/keycloak-helper-tool:1.1.1-260630 /kc_client_init /kc_client_init
 WORKDIR /app
 # Install system level deps for running the package (not devel versions for building wheels)
 # and install the wheels we built in the previous step. generate default config
@@ -158,8 +158,8 @@ RUN --mount=type=ssh uv sync \
 ###########
 FROM devel_build as devel_shell
 # Copy everything to the image
-COPY --from=pvarki/kw_product_init:latest /kw_product_init /kw_product_init
-COPY --from=pvarki/kc_client_init:latest /kc_client_init /kc_client_init
+COPY --from=ghcr.io/pvarki/kraftwerk-helper-tool:1.3.0-260513 /kw_product_init /kw_product_init
+COPY --from=ghcr.io/pvarki/keycloak-helper-tool:1.1.1-260630 /kc_client_init /kc_client_init
 WORKDIR /app
 RUN apt-get update && apt-get install -y zsh \
     && sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" \
