@@ -139,3 +139,4 @@ node_modules
 ui/public/assets/features/.DS_Store
 
 .prettier_cache
+.devspace
