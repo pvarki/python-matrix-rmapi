@@ -1,0 +1,37 @@
+version: v2beta1
+name: matrix-integration
+
+images:
+  matrixrmapi:
+    image: ghcr.io/pvarki/matrix-integration
+    dockerfile: ./Dockerfile
+    context: ./
+    target: devel_shell
+    skipPush: true
+    buildKit: {}
+
+pipelines:
+  dev: |-
+    build_images --all
+    start_dev --all
+
+dev:
+  matrixrmapi:
+    labelSelector:
+      app: matrix
+    namespace: app-matrix
+    container: matrixrmapi
+    devImage: ${runtime.images.matrixrmapi}
+    command:
+      - /bin/bash
+      - -lc
+      - source /container-init.sh && uv sync --frozen && uv run uvicorn --host 0.0.0.0 --port 8012 --log-level debug --factory matrixrmapi.app:get_app --reload
+    sync:
+      - path: ./src:/app/src
+      - path: ./docker:/app/docker
+        # container-init.sh is provided read-only via the configmap mount
+        # (/container-init.sh -> /app/docker/container-init.sh symlink), so DevSpace
+        # can't overwrite it during sync. Skip it; the mounted copy is what runs.
+        excludePaths:
+          - container-init.sh
+    logs: {}
