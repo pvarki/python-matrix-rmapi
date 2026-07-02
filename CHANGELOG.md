@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.2](https://github.com/pvarki/python-matrix-rmapi/compare/v1.2.1...v1.2.2) (2026-07-02)
+
+
+### Bug Fixes
+
+* release-please changelog ([8129644](https://github.com/pvarki/python-matrix-rmapi/commit/81296442db6b8edfcb6da0f2645bff89354072c4))
+
+
+### Other Changes
+
+* pin version and use new name for helper scripts ([d5d15ee](https://github.com/pvarki/python-matrix-rmapi/commit/d5d15eeccbb76fbc74a4fc09ebe99d04c175e90d))
+* upgrade lockfile versions ([40f7f5c](https://github.com/pvarki/python-matrix-rmapi/commit/40f7f5c14b65e694846da329660ef6a32aead70a))
+* use new image for keycloak go script + add devspace ([0a9a926](https://github.com/pvarki/python-matrix-rmapi/commit/0a9a9262e636e1d02442935087560ceb9087b650))
+
 ## [1.2.1](https://github.com/pvarki/python-matrix-rmapi/compare/v1.2.0...v1.2.1) (2026-06-14)
 
 
