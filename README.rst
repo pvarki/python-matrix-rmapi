@@ -232,8 +232,8 @@ SemVer ``MAJOR.MINOR.PATCH`` from Conventional Commit messages (``fix:`` bumps p
 minor, ``feat!:`` / ``BREAKING CHANGE:`` bumps major) and opens a release PR. Merging it tags the release,
 publishes the Docker image, and attaches the OpenAPI spec (``openapi.json``) to the GitHub release.
 
-Only ``feat``, ``fix``, ``perf``, ``deps``, ``revert`` and ``docs`` land in the changelog; everything else is
-hidden. This is currently the release-please default split and can be reconfigured later.
+Every Conventional Commit lands in the changelog: ``feat``, ``fix`` and ``revert`` get their own
+sections, everything else (``perf``, ``chore``, ``docs``, ``ci``, ...) is grouped under *Other Changes*.
 
 Merge PRs with **"Rebase and merge"**, never squash: this preserves the individual commits in git
 history and lets release-please parse every Conventional Commit.
