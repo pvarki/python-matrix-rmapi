@@ -126,27 +126,35 @@
       },
       "mobile-intro": {
         "title": "Välkommen till Matrix",
-        "description": "Denna introduktion använder Element Classic-klienten, men du kan använda nästan vilken Matrix-klient som helst. Stegen bör vara liknande i andra klienter."
+        "description": "Denna introduktion använder Element X-klienten, men du kan använda nästan vilken Matrix-klient som helst. Stegen bör vara liknande i andra klienter."
       },
       "mobile-step-1": {
-        "title": "Logga in i Element Classic - 1",
-        "description": "Öppna Element och välj \"Sign in\"."
+        "title": "Logga in | Element X",
+        "description": "Öppna Element X och välj \"Logga in manuellt\"."
       },
       "mobile-step-2": {
-        "title": "Logga in i Element Classic - 2",
-        "description": "Tryck på \"Edit\" vid hemserverns adress."
+        "title": "Välj kontoleverantör | Element X",
+        "description": "Välj \"Annan\"."
       },
       "mobile-step-3": {
-        "title": "Logga in i Element Classic - 3",
-        "description": "Klistra in serveradressen du kopierade tidigare. Tryck på \"Next\"."
+        "title": "Serveradress | Element X",
+        "description": "Klistra in serveradressen du kopierade tidigare (1). Välj servern nedan (2)."
       },
       "mobile-step-4": {
-        "title": "Logga in i Element Classic - 4",
-        "description": "Tryck på \"Continue with Keycloak\". Fortsätt i din webbläsare, som bör fråga efter ditt mTLS-certifikat. Autentisera med mTLS."
+        "title": "Logga in | Element X",
+        "description": "Fortsätt för att logga in. Din webbläsare bör öppnas för nästa steg."
       },
       "mobile-step-5": {
-        "title": "Element Classics startsida",
-        "description": "Du är nu inloggad och kan använda Matrix. Du kan söka efter användare och rum i det övre högra hörnet (1). Du kan starta en chatt från det nedre högra hörnet (2)."
+        "title": "Logga in | Element X",
+        "description": "Ange ditt certifikat om du blir ombedd (1) och fortsätt om du blir ombedd (2)."
+      },
+      "mobile-step-6": {
+        "title": "Skapa konto | Element X",
+        "description": "Skapa konto (1) och fortsätt (2)."
+      },
+      "mobile-step-7": {
+        "title": "Startsida | Element X",
+        "description": "Du är nu inloggad och kan använda Matrix. Du kan söka efter användare och rum i det övre högra hörnet (1). Du kan starta en chatt från det nedre högra hörnet (2). Du ser dina aktiva rum på startsidan (3)."
       }
     },
     "title": "Introduktion till Matrix",
