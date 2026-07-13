@@ -126,27 +126,35 @@
       },
       "mobile-intro": {
         "title": "Tervetuloa Matrixiin",
-        "description": "Tämä opas käyttää Element Classic -sovellusta, mutta voit käyttää lähes mitä tahansa Matrix-sovellusta. Vaiheet ovat samankaltaisia muissakin sovelluksissa."
+        "description": "Tämä opas käyttää Element X -sovellusta, mutta voit käyttää lähes mitä tahansa Matrix-sovellusta. Vaiheet ovat samankaltaisia muissakin sovelluksissa."
       },
       "mobile-step-1": {
-        "title": "Kirjaudu Element Classiciin - 1",
-        "description": "Avaa Element ja valitse \"Sign in\"."
+        "title": "Kirjaudu sisään | Element X",
+        "description": "Avaa Element X ja valitse \"Kirjaudu sisään manuaalisesti\"."
       },
       "mobile-step-2": {
-        "title": "Kirjaudu Element Classiciin - 2",
-        "description": "Paina \"Edit\" kotipalvelimen osoitteen kohdalta."
+        "title": "Valitse tilin tarjoaja | Element X",
+        "description": "Valitse \"Muu\"."
       },
       "mobile-step-3": {
-        "title": "Kirjaudu Element Classiciin - 3",
-        "description": "Liitä aiemmin kopioimasi palvelimen osoite. Paina \"Next\"."
+        "title": "Palvelimen osoite | Element X",
+        "description": "Liitä aiemmin kopioimasi palvelimen osoite (1). Valitse alla oleva palvelin (2)."
       },
       "mobile-step-4": {
-        "title": "Kirjaudu Element Classiciin - 4",
-        "description": "Paina \"Continue with Keycloak\". Jatka selaimessasi, jonka pitäisi pyytää mTLS-varmennettasi. Tunnistaudu mTLS-varmenteella."
+        "title": "Kirjaudu sisään | Element X",
+        "description": "Jatka kirjautumiseen. Selaimesi pitäisi avautua seuraavia vaiheita varten."
       },
       "mobile-step-5": {
-        "title": "Element Classicin kotinäkymä",
-        "description": "Olet nyt kirjautunut sisään ja voit käyttää Matrixia. Voit etsiä käyttäjiä ja huoneita oikeasta yläkulmasta (1). Voit aloittaa keskustelun oikeasta alakulmasta (2)."
+        "title": "Kirjaudu sisään | Element X",
+        "description": "Anna varmenteesi pyydettäessä (1) ja jatka (2)."
+      },
+      "mobile-step-6": {
+        "title": "Luo tili | Element X",
+        "description": "Luo tili (1) ja jatka (2)."
+      },
+      "mobile-step-7": {
+        "title": "Kotinäkymä | Element X",
+        "description": "Olet nyt kirjautunut sisään ja voit käyttää Matrixia. Voit etsiä käyttäjiä ja huoneita oikeasta yläkulmasta (1). Voit aloittaa keskustelun oikeasta alakulmasta (2). Näet aktiiviset huoneesi kotinäkymässä (3)."
       }
     },
     "title": "Matrix-perehdytys",

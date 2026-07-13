@@ -126,27 +126,35 @@
       },
       "mobile-intro": {
         "title": "Welcome to Matrix",
-        "description": "This guide uses the Element Classic application, but you can use almost any Matrix application. The steps are similar in other applications as well."
+        "description": "This guide uses the Element X application, but you can use almost any Matrix application. The steps are similar in other applications as well."
       },
       "mobile-step-1": {
-        "title": "Log in to Element Classic - 1",
-        "description": "Open Element and select \"Sign in\"."
+        "title": "Sign in | Element X",
+        "description": "Open Element X and select \"Sign in manually\"."
       },
       "mobile-step-2": {
-        "title": "Log in to Element Classic - 2",
-        "description": "Press \"Edit\" next to the home server address."
+        "title": "Choose account provider | Element X",
+        "description": "Select \"Other\"."
       },
       "mobile-step-3": {
-        "title": "Log in to Element Classic - 3",
-        "description": "Paste the server address you copied earlier. Press \"Next\"."
+        "title": "Server address | Element X",
+        "description": "Paste the server address you copied earlier (1). Select the server below (2)."
       },
       "mobile-step-4": {
-        "title": "Log in to Element Classic - 4",
-        "description": "Press \"Continue with Keycloak\". Continue in your browser, which should prompt for your mTLS certificate. Authenticate with your mTLS certificate."
+        "title": "Log in | Element X",
+        "description": "Continue to log in. Your browser should open for the next steps."
       },
       "mobile-step-5": {
-        "title": "Element Classic home view",
-        "description": "You are now logged in and can use Matrix. You can search for users and rooms from the top right corner (1). You can start a conversation from the bottom right corner (2)."
+        "title": "Log in | Element X",
+        "description": "Provide your certificate if asked for (1) and continue (2)."
+      },
+      "mobile-step-6": {
+        "title": "Create account | Element X",
+        "description": "Create account (1) and continue (2)."
+      },
+      "mobile-step-7": {
+        "title": "Homepage | Element X",
+        "description": "You are now logged in and can use Matrix. You can search for users and rooms from the top right corner (1). You can start a conversation from the bottom right corner (2). You see your active rooms at the homepage (3)."
       }
     },
     "title": "Matrix onboarding",
