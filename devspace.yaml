@@ -22,12 +22,28 @@ dev:
     namespace: app-matrix
     container: matrixrmapi
     devImage: ${runtime.images.matrixrmapi}
+    patches:
+      - op: replace
+        path: spec.containers.name=matrixrmapi.resources.limits.memory
+        value: 1Gi
+      - op: replace
+        path: spec.containers.name=matrixrmapi.resources.requests.memory
+        value: 1Gi
     command:
       - /bin/bash
       - -lc
-      - source /container-init.sh && uv sync --frozen && uv run uvicorn --host 0.0.0.0 --port 8012 --log-level debug --factory matrixrmapi.app:get_app --reload
+      - mkdir -p /ui_files/matrix && (pnpm --dir /app/ui exec vite build --outDir /ui_files/matrix --emptyOutDir --watch &) && uv run --no-sync uvicorn --host 0.0.0.0 --port 8012 --log-level debug --factory matrixrmapi.app:get_app --reload
     sync:
       - path: ./src:/app/src
+        excludePaths:
+          - __pycache__/
+          - "**/__pycache__/"
+          - "*.pyc"
+      - path: ./ui/src:/app/ui/src
+      - path: ./ui/public:/app/ui/public
+      - path: ./ui/public:/ui_files/matrix
+        disableDownload: true
+        initialSync: preferLocal
       - path: ./docker:/app/docker
         # container-init.sh is provided read-only via the configmap mount
         # (/container-init.sh -> /app/docker/container-init.sh symlink), so DevSpace

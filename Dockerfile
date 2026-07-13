@@ -159,10 +159,15 @@ FROM devel_build as devel_shell
 # Copy everything to the image
 COPY --from=ghcr.io/pvarki/kraftwerk-helper-tool:1.3.0-260513 /kw_product_init /kw_product_init
 WORKDIR /app
+ENV COREPACK_HOME=/opt/corepack
 RUN apt-get update && apt-get install -y zsh \
     && sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" \
     && echo "source /root/.profile" >>/root/.zshrc \
     && pip3 install git-up \
     && ln -s /app/docker/container-init.sh /container-init.sh \
+    && mkdir -p "$COREPACK_HOME" \
+    && corepack prepare pnpm@11.1.0 --activate \
+    && chmod -R 0777 "$COREPACK_HOME" \
+    && chmod 0777 /app/ui /app/ui/node_modules \
     && true
 ENTRYPOINT ["/bin/zsh", "-l"]

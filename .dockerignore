@@ -49,3 +49,9 @@ Dockerfile
 **/.mypy_cache/
 **/.dmypy.json
 **/dmypy.json
+
+# Node / frontend
+**/node_modules/
+**/dist/
+**/.__mf__temp/
+**/.vite/
