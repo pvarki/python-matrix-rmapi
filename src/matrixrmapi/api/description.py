@@ -17,14 +17,14 @@ router_v2 = APIRouter()
 PRODUCT_SHORTNAME = "matrix"
 
 
-class ProductComponent(BaseModel):  # pylint: disable=too-few-public-methods
+class ProductComponent(BaseModel):
     """Project component info"""
 
     type: Literal["link", "markdown", "component"]
     ref: str
 
 
-class ProductDescriptionExtended(BaseModel):  # pylint: disable=too-few-public-methods
+class ProductDescriptionExtended(BaseModel):
     """Description of a product"""
 
     shortname: str = Field(
@@ -37,7 +37,7 @@ class ProductDescriptionExtended(BaseModel):  # pylint: disable=too-few-public-m
     docs: str = Field(description="Link to documentation")
     component: ProductComponent = Field(description="Component type and ref")
 
-    class Config:  # pylint: disable=too-few-public-methods
+    class Config:
         """Pydantic configs"""
 
         extra = Extra.forbid

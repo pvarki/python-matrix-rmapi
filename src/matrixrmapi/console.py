@@ -84,4 +84,4 @@ def dump_openapi(ctx: click.Context) -> None:
 def matrixrmapi_cli() -> None:
     """matrixrmapi"""
     init_logging(logging.WARNING)
-    cli_group()  # pylint: disable=no-value-for-parameter
+    cli_group()

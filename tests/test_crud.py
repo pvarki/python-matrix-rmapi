@@ -15,9 +15,6 @@ from .conftest import APP
 LOGGER = logging.getLogger(__name__)
 
 
-# pylint: disable=redefined-outer-name
-
-
 def test_unauth(norppa11: Dict[str, str]) -> None:
     """Check that unauth call to auth endpoint fails"""
     client = TestClient(APP)

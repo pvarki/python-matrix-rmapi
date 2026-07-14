@@ -14,8 +14,8 @@ import httpx
 import pytest
 from fastapi import FastAPI
 
-from matrixrmapi.synapseutils import startup
-from matrixrmapi.synapseutils.mas_admin import MasAdmin
+from matrixrmapi.utils import startup
+from matrixrmapi.utils.mas_admin import MasAdmin
 
 # httpx.Response needs a request object to call raise_for_status() cleanly.
 FAKE_REQUEST = httpx.Request("POST", "http://mas.test/fake")
@@ -36,8 +36,8 @@ def _make_mas(*, with_token: bool = True) -> MasAdmin:
     """
     mas = MasAdmin("http://mas.test", "clientid", "clientsecret")
     if with_token:
-        mas._token = "mas_admin_token"  # pylint: disable=protected-access  # nosec B105
-        mas._token_expires = time.monotonic() + 1000  # pylint: disable=protected-access
+        mas._token = "mas_admin_token"  # nosec B105
+        mas._token_expires = time.monotonic() + 1000
     return mas
 
 
@@ -50,9 +50,9 @@ def _make_mas(*, with_token: bool = True) -> MasAdmin:
 async def test_admin_token_request_shape() -> None:
     """Token fetch must use basic auth and client_credentials with admin scope."""
     mas = _make_mas(with_token=False)
-    with patch.object(mas._client, "post", new_callable=AsyncMock) as mock_post:  # pylint: disable=protected-access
+    with patch.object(mas._client, "post", new_callable=AsyncMock) as mock_post:
         mock_post.return_value = _fake(200, {"access_token": "tok", "expires_in": 300})
-        token = await mas._ensure_admin_token()  # pylint: disable=protected-access
+        token = await mas._ensure_admin_token()
     assert token == "tok"  # nosec B105
     assert mock_post.call_args.kwargs["auth"] == ("clientid", "clientsecret")
     data: Dict[str, str] = mock_post.call_args.kwargs["data"]
@@ -64,10 +64,10 @@ async def test_admin_token_request_shape() -> None:
 async def test_admin_token_cached() -> None:
     """A fresh token must be reused, not re-fetched on every call."""
     mas = _make_mas(with_token=False)
-    with patch.object(mas._client, "post", new_callable=AsyncMock) as mock_post:  # pylint: disable=protected-access
+    with patch.object(mas._client, "post", new_callable=AsyncMock) as mock_post:
         mock_post.return_value = _fake(200, {"access_token": "tok", "expires_in": 300})
-        await mas._ensure_admin_token()  # pylint: disable=protected-access
-        await mas._ensure_admin_token()  # pylint: disable=protected-access
+        await mas._ensure_admin_token()
+        await mas._ensure_admin_token()
         mock_post.assert_called_once()
 
 
@@ -75,10 +75,10 @@ async def test_admin_token_cached() -> None:
 async def test_admin_token_refetched_after_expiry() -> None:
     """A stale token must trigger a new token fetch."""
     mas = _make_mas()
-    mas._token_expires = time.monotonic() - 1  # pylint: disable=protected-access
-    with patch.object(mas._client, "post", new_callable=AsyncMock) as mock_post:  # pylint: disable=protected-access
+    mas._token_expires = time.monotonic() - 1
+    with patch.object(mas._client, "post", new_callable=AsyncMock) as mock_post:
         mock_post.return_value = _fake(200, {"access_token": "tok2", "expires_in": 300})
-        token = await mas._ensure_admin_token()  # pylint: disable=protected-access
+        token = await mas._ensure_admin_token()
     assert token == "tok2"  # nosec B105
     mock_post.assert_called_once()
 
@@ -92,7 +92,7 @@ async def test_admin_token_refetched_after_expiry() -> None:
 async def test_ensure_user_existing_skips_create() -> None:
     """Existing user: ULID returned from lookup, no create POST."""
     mas = _make_mas()
-    client = mas._client  # pylint: disable=protected-access
+    client = mas._client
     with (
         patch.object(client, "get", new_callable=AsyncMock) as mock_get,
         patch.object(client, "post", new_callable=AsyncMock) as mock_post,
@@ -107,7 +107,7 @@ async def test_ensure_user_existing_skips_create() -> None:
 async def test_ensure_user_creates_on_404() -> None:
     """Unknown user: 404 lookup must be followed by a create POST."""
     mas = _make_mas()
-    client = mas._client  # pylint: disable=protected-access
+    client = mas._client
     with (
         patch.object(client, "get", new_callable=AsyncMock) as mock_get,
         patch.object(client, "post", new_callable=AsyncMock) as mock_post,
@@ -129,7 +129,7 @@ async def test_ensure_user_creates_on_404() -> None:
 async def test_create_bot_token_scopes_and_expiry() -> None:
     """Personal session must carry all three scopes and an expiry."""
     mas = _make_mas()
-    with patch.object(mas._client, "post", new_callable=AsyncMock) as mock_post:  # pylint: disable=protected-access
+    with patch.object(mas._client, "post", new_callable=AsyncMock) as mock_post:
         mock_post.return_value = _fake(
             201,
             {
@@ -159,7 +159,7 @@ async def test_create_bot_token_scopes_and_expiry() -> None:
 async def test_deactivate_user_found() -> None:
     """Known user: deactivate POST hits the user's ULID endpoint."""
     mas = _make_mas()
-    client = mas._client  # pylint: disable=protected-access
+    client = mas._client
     with (
         patch.object(client, "get", new_callable=AsyncMock) as mock_get,
         patch.object(client, "post", new_callable=AsyncMock) as mock_post,
@@ -176,7 +176,7 @@ async def test_deactivate_user_found() -> None:
 async def test_deactivate_user_not_found_skips() -> None:
     """Unknown user (never logged in): no deactivate call, no raise, returns False."""
     mas = _make_mas()
-    client = mas._client  # pylint: disable=protected-access
+    client = mas._client
     with (
         patch.object(client, "get", new_callable=AsyncMock) as mock_get,
         patch.object(client, "post", new_callable=AsyncMock) as mock_post,
@@ -200,7 +200,7 @@ def test_setup_mas_admin(monkeypatch: pytest.MonkeyPatch) -> None:
     mas = startup.setup_mas_admin(app)
     assert mas is not None
     assert app.state.mas is mas
-    assert mas._client_id == "cid"  # pylint: disable=protected-access
+    assert mas._client_id == "cid"
 
 
 def test_setup_mas_admin_missing_secret(monkeypatch: pytest.MonkeyPatch) -> None:

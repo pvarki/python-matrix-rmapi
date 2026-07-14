@@ -7,8 +7,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from matrixrmapi.synapseutils.startup import apply_pending, ensure_room
-from matrixrmapi.synapseutils.synapse_admin import SynapseAdmin
+from matrixrmapi.utils.startup import apply_pending, ensure_room
+from matrixrmapi.utils.synapse_admin import SynapseAdmin
 from matrixrmapi.types import AdminAction
 
 ROOMS: Dict[str, str] = {
