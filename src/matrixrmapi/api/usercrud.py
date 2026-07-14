@@ -12,8 +12,8 @@ from libpvarki.schemas.generic import OperationResultResponse
 from libpvarki.schemas.product import UserCRUDRequest
 
 from ..config import get_manifest, get_server_domain
-from ..synapseutils.mas_admin import MasAdmin
-from ..synapseutils.synapse_admin import SynapseAdmin, matrix_user_id
+from ..utils.mas_admin import MasAdmin
+from ..utils.synapse_admin import SynapseAdmin, matrix_user_id
 from ..types import AdminAction
 
 LOGGER = logging.getLogger(__name__)
@@ -132,7 +132,7 @@ async def apply_admin_action(
                 await synapse.force_join(admin_id, uid)
             else:
                 await synapse.kick(admin_id, uid)
-    except Exception as exc:  # pylint: disable=broad-except
+    except Exception as exc:
         LOGGER.error("Failed to %s %s: %s", action.value, uid, exc)
         return OperationResultResponse(success=False)
     LOGGER.info("%sd %s (power level %d)", action.value.capitalize(), uid, level)

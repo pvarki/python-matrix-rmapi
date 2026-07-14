@@ -109,7 +109,7 @@ class SynapseAdmin:
             )
             resp.raise_for_status()
             LOGGER.info("Rate-limit override applied for %s", user_id)
-        except Exception as exc:  # pylint: disable=broad-except
+        except Exception as exc:
             LOGGER.warning("Failed to override rate limit for %s: %s", user_id, exc)
 
     async def _auth(self) -> Dict[str, str]:

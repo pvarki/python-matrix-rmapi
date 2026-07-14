@@ -1,4 +1,4 @@
-"""Synapse startup helpers: health-check, bot registration, room setup."""
+"""MAS and Synapse startup helpers: health-check, bot registration, room setup."""
 
 from __future__ import annotations
 
@@ -56,7 +56,7 @@ async def wait_for_service(
                 if resp.status_code == 200:
                     LOGGER.info("%s is ready", name)
                     return True
-            except Exception:  # pylint: disable=broad-except  # nosec B110
+            except Exception:  # nosec B110
                 pass
             if attempt < retries - 1:
                 await asyncio.sleep(interval)
@@ -95,7 +95,7 @@ async def acquire_bot_token(synapse: SynapseAdmin, mas: MasAdmin) -> Tuple[bool,
     try:
         await synapse.setup(SYNAPSE_BOT_USERNAME, mas)
         return True, is_init
-    except Exception as exc:  # pylint: disable=broad-except
+    except Exception as exc:
         LOGGER.error("Bot session setup failed: %s", exc)
         return False, False
     finally:
@@ -160,7 +160,7 @@ async def apply_pending(
                 if admin_id:
                     await synapse.kick(admin_id, uid)
                 LOGGER.info("Applied deferred demotion for %s", uid)
-        except Exception as exc:  # pylint: disable=broad-except
+        except Exception as exc:
             LOGGER.error(
                 "Failed to apply deferred %s for %s: %s", action.value, uid, exc
             )
@@ -240,7 +240,7 @@ def setup_mas_admin(app: FastAPI) -> Optional[MasAdmin]:
     return mas
 
 
-async def synapse_startup(app: FastAPI) -> None:
+async def connect_to_matrix(app: FastAPI) -> None:
     """Background task: connect to MAS and Synapse, create bot and rooms."""
     mas = setup_mas_admin(app)
     if mas is None:
@@ -267,7 +267,7 @@ async def synapse_startup(app: FastAPI) -> None:
 
     try:
         room_ids = await ensure_rooms(synapse, deployment, domain)
-    except Exception as exc:  # pylint: disable=broad-except
+    except Exception as exc:
         LOGGER.error("Room setup failed: %s", exc)
         return
 
@@ -276,7 +276,7 @@ async def synapse_startup(app: FastAPI) -> None:
         # duplicate PUTs from every worker on every restart.
         try:
             await configure_rooms_state(synapse, room_ids, deployment)
-        except Exception as exc:  # pylint: disable=broad-except
+        except Exception as exc:
             LOGGER.error("Room configuration failed (rooms still usable): %s", exc)
     else:
         LOGGER.info(

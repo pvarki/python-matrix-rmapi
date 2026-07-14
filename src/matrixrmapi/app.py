@@ -15,17 +15,17 @@ from libpvarki.logging import init_logging
 from matrixrmapi import __version__
 from .config import LOG_LEVEL, get_manifest
 from .api import all_routers, all_routers_v2
-from .synapseutils.mas_admin import MasAdmin
-from .synapseutils.synapse_admin import SynapseAdmin
-from .synapseutils.startup import synapse_startup
+from .utils.mas_admin import MasAdmin
+from .utils.synapse_admin import SynapseAdmin
+from .utils.startup import connect_to_matrix
 
 LOGGER = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def app_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Start Synapse integration as a non-blocking background task."""
-    task = asyncio.create_task(synapse_startup(app))
+    """Start MAS and Synapse integration as a non-blocking background task."""
+    task = asyncio.create_task(connect_to_matrix(app))
     try:
         yield
     finally:
