@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.3.0](https://github.com/pvarki/python-matrix-rmapi/compare/v1.2.2...v1.3.0) (2026-07-14)
+
+
+### Features
+
+* element x onboarding ([b9b3944](https://github.com/pvarki/python-matrix-rmapi/commit/b9b39445fbf026e472ef99fb9b6c3264466c7518))
+* use matrix authentication service ([446fdfb](https://github.com/pvarki/python-matrix-rmapi/commit/446fdfbce44d55e0824ce429709fd521a828a422))
+
+
+### Bug Fixes
+
+* devspace ([e9ae8fb](https://github.com/pvarki/python-matrix-rmapi/commit/e9ae8fb6e9dc2530567c19fdd9d5ee265fc0aa17))
+* implement proper healtcheck ([191b342](https://github.com/pvarki/python-matrix-rmapi/commit/191b3429031b05be17a8ced59a0ce5d1a1f461c0))
+* naming + pylint ([65ef839](https://github.com/pvarki/python-matrix-rmapi/commit/65ef839b8765f62a4fb580eddf8d717c2dfb6317))
+* remove kc registration ([77ef01d](https://github.com/pvarki/python-matrix-rmapi/commit/77ef01da8431f98d4f2668d6a090883b7d612e93))
+
 ## [1.2.2](https://github.com/pvarki/python-matrix-rmapi/compare/v1.2.1...v1.2.2) (2026-07-02)
 
 

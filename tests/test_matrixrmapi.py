@@ -11,7 +11,7 @@ from .conftest import APP
 
 def test_version() -> None:
     """Make sure version matches expected"""
-    assert __version__ == "1.2.2"  # x-release-please-version
+    assert __version__ == "1.3.0"  # x-release-please-version
 
 
 def test_healthcheck_not_initialised(mtlsclient: TestClient) -> None:
