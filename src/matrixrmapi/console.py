@@ -9,7 +9,6 @@ from libadvian.logging import init_logging
 import aiohttp
 
 from matrixrmapi import __version__
-from matrixrmapi.app import get_app
 
 
 LOGGER = logging.getLogger(__name__)
@@ -76,6 +75,9 @@ def dump_openapi(ctx: click.Context) -> None:
     """
     Dump autogenerate openapi spec as JSON
     """
+    # Import only here to avoid waiting on other commands
+    from matrixrmapi.app import get_app
+
     app = get_app()
     click.echo(json.dumps(app.openapi()))
     ctx.exit(0)
