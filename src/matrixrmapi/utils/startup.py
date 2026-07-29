@@ -7,7 +7,6 @@ import logging
 import os
 import tempfile
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 import filelock
 import httpx
@@ -23,7 +22,7 @@ from ..config import (
     get_manifest,
     get_server_domain,
 )
-from ..types import AdminAction, CALL_EVENTS_DEFAULT_LEVEL
+from ..types import CALL_EVENTS_DEFAULT_LEVEL, AdminAction
 from .mas_admin import MasAdmin
 from .synapse_admin import SynapseAdmin
 
@@ -35,7 +34,7 @@ INIT_RETRY_BACKOFF_MAX = 60.0
 READY_DIR = Path(tempfile.gettempdir()) / "matrixrmapi_ready"
 
 # (key, alias_suffix, display_name, is_space, is_private)
-ROOMS_CONFIG: List[Tuple[str, str, str, bool, bool]] = [
+ROOMS_CONFIG: list[tuple[str, str, str, bool, bool]] = [
     ("space", "{d}-space", "{d}", True, False),
     ("admin", "{d}-admin", "96-Admin channel", False, True),
     ("general", "{d}-general", "98-General", False, False),
@@ -43,7 +42,7 @@ ROOMS_CONFIG: List[Tuple[str, str, str, bool, bool]] = [
     ("offtopic", "{d}-offtopic", "97-Offtopic", False, False),
 ]
 
-ROOM_TOPICS: Dict[str, str] = {
+ROOM_TOPICS: dict[str, str] = {
     "general": "Work discussion that does not fit any other room.",
     "helpdesk": "Report issues and get help from here.",
     "offtopic": "Everything that is not about the topics or work.",
@@ -90,8 +89,8 @@ async def wait_for_service(
                 if resp.status_code == 200:
                     LOGGER.info("%s is ready", name)
                     return True
-            except Exception:  # nosec B110
-                pass
+            except Exception as exc:  # noqa: BLE001
+                LOGGER.debug("%s health check failed: %s", name, exc)
             if attempt < retries - 1:
                 await asyncio.sleep(interval)
     LOGGER.error(
@@ -100,7 +99,7 @@ async def wait_for_service(
     return False
 
 
-async def acquire_bot_token(synapse: SynapseAdmin, mas: MasAdmin) -> Tuple[bool, bool]:
+async def acquire_bot_token(synapse: SynapseAdmin, mas: MasAdmin) -> tuple[bool, bool]:
     """Set up the bot session, using a file lock for worker coordination.
 
     Returns ``(success, is_init_worker)``.  Only the init worker
@@ -129,7 +128,7 @@ async def acquire_bot_token(synapse: SynapseAdmin, mas: MasAdmin) -> Tuple[bool,
     try:
         await synapse.setup(SYNAPSE_BOT_USERNAME, mas)
         return True, is_init
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         LOGGER.error("Bot session setup failed: %s", exc)
         return False, False
     finally:
@@ -153,10 +152,10 @@ async def ensure_room(
 
 async def ensure_rooms(
     synapse: SynapseAdmin, deployment: str, domain: str
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Create space and rooms if they don't exist; return room IDs dict."""
-    room_ids: Dict[str, str] = {}
-    space_id: Optional[str] = None
+    room_ids: dict[str, str] = {}
+    space_id: str | None = None
 
     for key, alias_tpl, name_tpl, is_space, is_private in ROOMS_CONFIG:
         alias = f"#{alias_tpl.format(d=deployment)}:{domain}"
@@ -175,7 +174,7 @@ async def ensure_rooms(
 
 
 async def apply_pending(
-    synapse: SynapseAdmin, rooms: Dict[str, str], pending: Dict[str, AdminAction]
+    synapse: SynapseAdmin, rooms: dict[str, str], pending: dict[str, AdminAction]
 ) -> None:
     """Apply promotions/demotions that were queued while Synapse was still starting."""
     public_ids = [
@@ -194,14 +193,14 @@ async def apply_pending(
                 if admin_id:
                     await synapse.kick(admin_id, uid)
                 LOGGER.info("Applied deferred demotion for %s", uid)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             LOGGER.error(
                 "Failed to apply deferred %s for %s: %s", action.value, uid, exc
             )
 
 
 async def configure_rooms_state(
-    synapse: SynapseAdmin, rooms: Dict[str, str], deployment: str
+    synapse: SynapseAdmin, rooms: dict[str, str], deployment: str
 ) -> None:
     """Apply join rules, encryption, history visibility, topics and names to all rooms.
 
@@ -255,7 +254,7 @@ async def configure_rooms_state(
     LOGGER.info("Room state configuration applied")
 
 
-def setup_mas_admin(app: FastAPI) -> Optional[MasAdmin]:
+def setup_mas_admin(app: FastAPI) -> MasAdmin | None:
     """Build the MAS admin client from the shared client id and secret."""
     if not MAS_ADMIN_CLIENT_SECRET:
         LOGGER.error(
@@ -296,7 +295,7 @@ async def init_matrix_once(app: FastAPI, mas: MasAdmin) -> bool:
 
     try:
         room_ids = await ensure_rooms(synapse, deployment, domain)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         LOGGER.error("Room setup failed: %s", exc)
         await synapse.close()
         return False
@@ -306,7 +305,7 @@ async def init_matrix_once(app: FastAPI, mas: MasAdmin) -> bool:
         # duplicate PUTs from every worker on every restart.
         try:
             await configure_rooms_state(synapse, room_ids, deployment)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             LOGGER.error("Room configuration failed (rooms still usable): %s", exc)
     else:
         LOGGER.info(
@@ -323,7 +322,7 @@ async def init_matrix_once(app: FastAPI, mas: MasAdmin) -> bool:
     # Apply any promotions/demotions that arrived while rooms were not yet set.
     # Snapshot and clear atomically (no await between) so any new requests that
     # arrive during apply_pending go into the now-empty dict, not the snapshot.
-    pending: Dict[str, AdminAction] = dict(app.state.pending_promotions)
+    pending: dict[str, AdminAction] = dict(app.state.pending_promotions)
     app.state.pending_promotions.clear()
     if pending:
         LOGGER.info("Processing %d deferred promotion(s)/demotion(s)", len(pending))
@@ -351,7 +350,7 @@ async def connect_to_matrix(app: FastAPI) -> None:
             if await init_matrix_once(app, mas):
                 return
             reason = "init did not complete"
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             reason = f"{type(exc).__name__}: {exc}"
         LOGGER.error(
             "Matrix init attempt %d failed (%s), retrying in %.0fs",

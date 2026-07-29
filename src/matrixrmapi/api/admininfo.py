@@ -3,9 +3,9 @@
 import logging
 
 from fastapi import APIRouter, Depends
+from jinja2 import Environment, FileSystemLoader
 from libpvarki.middleware import MTLSHeader
 from libpvarki.schemas.product import UserInstructionFragment
-from jinja2 import Environment, FileSystemLoader
 
 from ..config import TEMPLATES_PATH
 

@@ -1,15 +1,14 @@
 """CLI entrypoints for matrix product integration api"""
 
 import asyncio
-import logging
 import json
+import logging
 
+import aiohttp
 import click
 from libadvian.logging import init_logging
-import aiohttp
 
 from matrixrmapi import __version__
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -54,16 +53,18 @@ def do_http_healthcheck(
         nonlocal host, port, timeout
         if "://" not in host:
             host = f"http://{host}"
-        async with aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=timeout)
-        ) as session:
-            async with session.get(f"{host}:{port}/api/v1/healthcheck") as resp:
-                if resp.status != 200:
-                    return resp.status
-                payload = await resp.json()
-                click.echo(json.dumps(payload))
-                if not payload["healthy"]:
-                    return 1
+        async with (
+            aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(total=timeout)
+            ) as session,
+            session.get(f"{host}:{port}/api/v1/healthcheck") as resp,
+        ):
+            if resp.status != 200:
+                return resp.status
+            payload = await resp.json()
+            click.echo(json.dumps(payload))
+            if not payload["healthy"]:
+                return 1
         return 0
 
     ctx.exit(asyncio.get_event_loop().run_until_complete(doit()))

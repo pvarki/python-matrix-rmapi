@@ -1,14 +1,14 @@
 """pytest automagics"""
 
-from typing import Generator, Dict
-from pathlib import Path
 import logging
 import os
 import uuid
+from collections.abc import Generator
+from pathlib import Path
 
-from libpvarki.logging import init_logging
 import pytest
 from fastapi.testclient import TestClient
+from libpvarki.logging import init_logging
 
 from matrixrmapi.app import get_app
 from matrixrmapi.config import get_manifest
@@ -57,7 +57,7 @@ def rm_mtlsclient() -> Generator[TestClient, None, None]:
     yield client
 
 
-def create_user_dict(callsign: str) -> Dict[str, str]:
+def create_user_dict(callsign: str) -> dict[str, str]:
     """return valid user dict for crud operations"""
     return {
         "uuid": str(uuid.uuid4()),
@@ -67,6 +67,6 @@ def create_user_dict(callsign: str) -> Dict[str, str]:
 
 
 @pytest.fixture(scope="session")
-def norppa11() -> Dict[str, str]:
+def norppa11() -> dict[str, str]:
     """Session scoped user dict (to keep same UUID)"""
     return create_user_dict("NORPPA11a")

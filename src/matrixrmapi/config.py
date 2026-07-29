@@ -1,10 +1,10 @@
 """Configurations with .env support"""
 
-from typing import Dict, Any, cast
-from pathlib import Path
-import json
 import functools
+import json
 import logging
+from pathlib import Path
+from typing import Any, cast
 
 from starlette.config import Config
 
@@ -30,7 +30,7 @@ WEB_CONCURRENCY: int = cfg("WEB_CONCURRENCY", default=1, cast=int)
 
 
 @functools.cache
-def get_manifest() -> Dict[str, Any]:
+def get_manifest() -> dict[str, Any]:
     """Get manifest contents"""
     pth = Path("/pvarki/kraftwerk-init.json")
     if not pth.exists():
@@ -51,7 +51,7 @@ def get_manifest() -> Dict[str, Any]:
             },
         }
     data = json.loads(pth.read_text(encoding="utf-8"))
-    return cast(Dict[str, Any], data)
+    return cast(dict[str, Any], data)
 
 
 def get_server_domain() -> str:

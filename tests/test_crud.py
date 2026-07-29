@@ -1,6 +1,5 @@
 """Test the CRUD operations"""
 
-from typing import Dict
 import logging
 import uuid
 from unittest.mock import AsyncMock
@@ -10,19 +9,20 @@ from fastapi.testclient import TestClient
 
 from matrixrmapi.config import get_server_domain
 from matrixrmapi.types import AdminAction
+
 from .conftest import APP
 
 LOGGER = logging.getLogger(__name__)
 
 
-def test_unauth(norppa11: Dict[str, str]) -> None:
+def test_unauth(norppa11: dict[str, str]) -> None:
     """Check that unauth call to auth endpoint fails"""
     client = TestClient(APP)
     resp = client.post("/api/v1/users/created", json=norppa11)
     assert resp.status_code == 403
 
 
-def test_create(norppa11: Dict[str, str], rm_mtlsclient: TestClient) -> None:
+def test_create(norppa11: dict[str, str], rm_mtlsclient: TestClient) -> None:
     """Check that adding user works"""
     resp = rm_mtlsclient.post("/api/v1/users/created", json=norppa11)
     assert resp.status_code == 200
@@ -31,7 +31,7 @@ def test_create(norppa11: Dict[str, str], rm_mtlsclient: TestClient) -> None:
     assert payload["success"]
 
 
-def test_update(norppa11: Dict[str, str], rm_mtlsclient: TestClient) -> None:
+def test_update(norppa11: dict[str, str], rm_mtlsclient: TestClient) -> None:
     """Check that updating user works"""
     resp = rm_mtlsclient.put("/api/v1/users/updated", json=norppa11)
     assert resp.status_code == 200
@@ -40,7 +40,7 @@ def test_update(norppa11: Dict[str, str], rm_mtlsclient: TestClient) -> None:
     assert payload["success"]
 
 
-def test_revoke(norppa11: Dict[str, str], rm_mtlsclient: TestClient) -> None:
+def test_revoke(norppa11: dict[str, str], rm_mtlsclient: TestClient) -> None:
     """Check that revoking user works (MAS not ready -> success with warning)"""
     resp = rm_mtlsclient.post("/api/v1/users/revoked", json=norppa11)
     assert resp.status_code == 200
@@ -50,7 +50,7 @@ def test_revoke(norppa11: Dict[str, str], rm_mtlsclient: TestClient) -> None:
 
 
 def test_revoke_deactivates_in_mas(
-    norppa11: Dict[str, str], rm_mtlsclient: TestClient
+    norppa11: dict[str, str], rm_mtlsclient: TestClient
 ) -> None:
     """When MAS is ready, /revoked must deactivate the user via the MAS admin API"""
     mas = AsyncMock()
@@ -66,7 +66,7 @@ def test_revoke_deactivates_in_mas(
 
 
 def test_revoke_user_not_in_mas(
-    norppa11: Dict[str, str], rm_mtlsclient: TestClient
+    norppa11: dict[str, str], rm_mtlsclient: TestClient
 ) -> None:
     """User that never logged in (absent from MAS) still revokes successfully"""
     mas = AsyncMock()
@@ -81,7 +81,7 @@ def test_revoke_user_not_in_mas(
 
 
 def test_revoke_mas_error_fails(
-    norppa11: Dict[str, str], rm_mtlsclient: TestClient
+    norppa11: dict[str, str], rm_mtlsclient: TestClient
 ) -> None:
     """A MAS API failure must be reported as success=False"""
     mas = AsyncMock()
@@ -95,7 +95,7 @@ def test_revoke_mas_error_fails(
         del APP.state.mas
 
 
-def test_promote(norppa11: Dict[str, str], rm_mtlsclient: TestClient) -> None:
+def test_promote(norppa11: dict[str, str], rm_mtlsclient: TestClient) -> None:
     """Check that promoting user works"""
     resp = rm_mtlsclient.post("/api/v1/users/promoted", json=norppa11)
     assert resp.status_code == 200
@@ -104,7 +104,7 @@ def test_promote(norppa11: Dict[str, str], rm_mtlsclient: TestClient) -> None:
     assert payload["success"]
 
 
-def test_demote(norppa11: Dict[str, str], rm_mtlsclient: TestClient) -> None:
+def test_demote(norppa11: dict[str, str], rm_mtlsclient: TestClient) -> None:
     """Check that demoting user works"""
     resp = rm_mtlsclient.post("/api/v1/users/demoted", json=norppa11)
     assert resp.status_code == 200
@@ -118,7 +118,7 @@ def test_demote(norppa11: Dict[str, str], rm_mtlsclient: TestClient) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _unique_user() -> Dict[str, str]:
+def _unique_user() -> dict[str, str]:
     """Return a user dict with a unique callsign to avoid state collisions."""
     tag = uuid.uuid4().hex[:6]
     return {
@@ -136,7 +136,7 @@ def test_promote_queues_uid_when_synapse_not_ready(rm_mtlsclient: TestClient) ->
     assert resp.json()["success"] is True
 
     uid = f"@{user['callsign'].lower()}:{get_server_domain()}"
-    pending: Dict[str, AdminAction] = getattr(APP.state, "pending_promotions", {})
+    pending: dict[str, AdminAction] = getattr(APP.state, "pending_promotions", {})
     assert pending.get(uid) is AdminAction.PROMOTE
 
 
@@ -148,7 +148,7 @@ def test_demote_queues_uid_when_synapse_not_ready(rm_mtlsclient: TestClient) -> 
     assert resp.json()["success"] is True
 
     uid = f"@{user['callsign'].lower()}:{get_server_domain()}"
-    pending: Dict[str, AdminAction] = getattr(APP.state, "pending_promotions", {})
+    pending: dict[str, AdminAction] = getattr(APP.state, "pending_promotions", {})
     assert pending.get(uid) is AdminAction.DEMOTE
 
 
@@ -160,5 +160,5 @@ def test_demote_overwrites_pending_promote(rm_mtlsclient: TestClient) -> None:
     rm_mtlsclient.post("/api/v1/users/promoted", json=user)
     rm_mtlsclient.post("/api/v1/users/demoted", json=user)
 
-    pending: Dict[str, AdminAction] = getattr(APP.state, "pending_promotions", {})
+    pending: dict[str, AdminAction] = getattr(APP.state, "pending_promotions", {})
     assert pending.get(uid) is AdminAction.DEMOTE

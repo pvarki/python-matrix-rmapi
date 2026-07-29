@@ -7,7 +7,7 @@ MasAdmin instance, so no real network is required.
 from __future__ import annotations
 
 import time
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import httpx
@@ -23,7 +23,7 @@ FAKE_REQUEST = httpx.Request("POST", "http://mas.test/fake")
 BOT_ULID = "01TESTULID0000000000000000"
 
 
-def _fake(status: int, body: Dict[str, Any]) -> httpx.Response:
+def _fake(status: int, body: dict[str, Any]) -> httpx.Response:
     """Build a minimal fake httpx.Response."""
     return httpx.Response(status, json=body, request=FAKE_REQUEST)
 
@@ -55,7 +55,7 @@ async def test_admin_token_request_shape() -> None:
         token = await mas._ensure_admin_token()
     assert token == "tok"  # nosec B105
     assert mock_post.call_args.kwargs["auth"] == ("clientid", "clientsecret")
-    data: Dict[str, str] = mock_post.call_args.kwargs["data"]
+    data: dict[str, str] = mock_post.call_args.kwargs["data"]
     assert data["grant_type"] == "client_credentials"
     assert data["scope"] == "urn:mas:admin"
 
@@ -116,7 +116,7 @@ async def test_ensure_user_creates_on_404() -> None:
         mock_post.return_value = _fake(201, {"data": {"id": BOT_ULID}})
         ulid = await mas.ensure_user("bot")
     assert ulid == BOT_ULID
-    body: Dict[str, Any] = mock_post.call_args.kwargs["json"]
+    body: dict[str, Any] = mock_post.call_args.kwargs["json"]
     assert body == {"username": "bot"}
 
 
@@ -141,7 +141,7 @@ async def test_create_bot_token_scopes_and_expiry() -> None:
         token, expires_in = await mas.create_bot_token(BOT_ULID, "matrixrmapi bot")
     assert token == "mpt_bot_token"  # nosec B105
     assert expires_in == 3600
-    body: Dict[str, Any] = mock_post.call_args.kwargs["json"]
+    body: dict[str, Any] = mock_post.call_args.kwargs["json"]
     assert body["expires_in"] == 3600
     assert body["actor_user_id"] == BOT_ULID
     scope: str = body["scope"]

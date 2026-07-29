@@ -7,7 +7,7 @@ SynapseAdmin instance, so no real network is required.
 from __future__ import annotations
 
 import time
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import httpx
@@ -19,7 +19,7 @@ from matrixrmapi.utils.synapse_admin import SynapseAdmin, matrix_user_id
 FAKE_REQUEST = httpx.Request("POST", "http://synapse.test/fake")
 
 
-def _fake(status: int, body: Dict[str, Any]) -> httpx.Response:
+def _fake(status: int, body: dict[str, Any]) -> httpx.Response:
     """Build a minimal fake httpx.Response."""
     return httpx.Response(status, json=body, request=FAKE_REQUEST)
 
@@ -168,8 +168,8 @@ async def test_create_room_sets_bot_at_power_200() -> None:
     with patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post:
         mock_post.return_value = _fake(200, {"room_id": "!new:example.test"})
         await sa.create_room("TestRoom", "#test-room:example.test")
-        body: Dict[str, Any] = mock_post.call_args.kwargs["json"]
-        users: Dict[str, int] = body.get("power_level_content_override", {}).get(
+        body: dict[str, Any] = mock_post.call_args.kwargs["json"]
+        users: dict[str, int] = body.get("power_level_content_override", {}).get(
             "users", {}
         )
         assert users.get("@bot:example.test") == 200
@@ -182,7 +182,7 @@ async def test_create_space_sets_creation_content() -> None:
     with patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post:
         mock_post.return_value = _fake(200, {"room_id": "!space:example.test"})
         await sa.create_room("MySpace", "#my-space:example.test", is_space=True)
-        body: Dict[str, Any] = mock_post.call_args.kwargs["json"]
+        body: dict[str, Any] = mock_post.call_args.kwargs["json"]
         assert body.get("creation_content", {}).get("type") == "m.space"
 
 
@@ -193,7 +193,7 @@ async def test_create_private_room_uses_private_preset() -> None:
     with patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post:
         mock_post.return_value = _fake(200, {"room_id": "!priv:example.test"})
         await sa.create_room("Admin", "#admin:example.test", is_private=True)
-        body: Dict[str, Any] = mock_post.call_args.kwargs["json"]
+        body: dict[str, Any] = mock_post.call_args.kwargs["json"]
         assert body.get("preset") == "private_chat"
 
 
@@ -301,7 +301,7 @@ async def test_set_user_power_level_nonzero() -> None:
         mock_get.return_value = _fake(200, initial)
         mock_put.return_value = _fake(200, {})
         await sa.set_user_power_level("!r:example.test", "@user:example.test", 100)
-        body: Dict[str, Any] = mock_put.call_args.kwargs["json"]
+        body: dict[str, Any] = mock_put.call_args.kwargs["json"]
         assert body["users"]["@user:example.test"] == 100
 
 
@@ -318,7 +318,7 @@ async def test_set_user_power_level_zero_removes_user() -> None:
         mock_get.return_value = _fake(200, initial)
         mock_put.return_value = _fake(200, {})
         await sa.set_user_power_level("!r:example.test", "@user:example.test", 0)
-        body: Dict[str, Any] = mock_put.call_args.kwargs["json"]
+        body: dict[str, Any] = mock_put.call_args.kwargs["json"]
         assert "@user:example.test" not in body["users"]
 
 
@@ -334,7 +334,7 @@ async def test_invite_success() -> None:
     with patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post:
         mock_post.return_value = _fake(200, {})
         await sa.invite("!r:example.test", "@user:example.test")
-        body: Dict[str, Any] = mock_post.call_args.kwargs["json"]
+        body: dict[str, Any] = mock_post.call_args.kwargs["json"]
         assert body["user_id"] == "@user:example.test"
 
 

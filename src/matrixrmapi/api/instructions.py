@@ -1,6 +1,5 @@
 """Instructions endpoints"""
 
-from typing import Dict
 import logging
 
 from fastapi import APIRouter, Depends
@@ -13,7 +12,7 @@ router = APIRouter(dependencies=[Depends(MTLSHeader(auto_error=True))])
 
 
 @router.post("/{language}")
-async def user_intructions(user: UserCRUDRequest) -> Dict[str, str]:
+async def user_intructions(user: UserCRUDRequest) -> dict[str, str]:
     """return user instructions"""
     return {
         "callsign": user.callsign,

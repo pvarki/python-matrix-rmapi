@@ -3,17 +3,17 @@
 from __future__ import annotations
 
 import os
-from typing import Dict, cast
+from typing import cast
 from unittest.mock import AsyncMock
 
 import pytest
 
+from matrixrmapi.types import AdminAction
 from matrixrmapi.utils import startup
 from matrixrmapi.utils.startup import apply_pending, ensure_room
 from matrixrmapi.utils.synapse_admin import SynapseAdmin
-from matrixrmapi.types import AdminAction
 
-ROOMS: Dict[str, str] = {
+ROOMS: dict[str, str] = {
     "space": "!space:x",
     "admin": "!admin:x",
     "general": "!general:x",

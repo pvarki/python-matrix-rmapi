@@ -1,10 +1,9 @@
 """Endpoints for information for the end-user"""
 
-from typing import List, Dict
-import logging
-import io
-import zipfile
 import base64
+import io
+import logging
+import zipfile
 
 from fastapi import APIRouter, Depends
 from libpvarki.middleware import MTLSHeader
@@ -24,7 +23,7 @@ def zip_pem(pem: str, filename: str) -> bytes:
 
 
 @router.post("/fragment", deprecated=True)
-async def client_instruction_fragment(user: UserCRUDRequest) -> List[Dict[str, str]]:
+async def client_instruction_fragment(user: UserCRUDRequest) -> list[dict[str, str]]:
     """Return user instructions, we use POST because the integration layer might not keep
     track of callsigns and certs by UUID and will probably need both for the instructions"""
     zip1_bytes = zip_pem(user.x509cert, f"{user.callsign}_1.pem")

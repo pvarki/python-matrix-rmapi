@@ -1,7 +1,6 @@
 """Shared domain types and constants."""
 
 from enum import Enum
-from typing import Dict
 
 
 class AdminAction(Enum):
@@ -13,7 +12,7 @@ class AdminAction(Enum):
 
 # Call-related event types that regular users (power level 0) must be allowed to send.
 # Covers both legacy 1:1 calls and MSC3401 group calls (Element Call).
-CALL_EVENTS_DEFAULT_LEVEL: Dict[str, int] = {
+CALL_EVENTS_DEFAULT_LEVEL: dict[str, int] = {
     "m.call.invite": 0,
     "m.call.answer": 0,
     "m.call.hangup": 0,
