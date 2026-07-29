@@ -28,6 +28,11 @@ MAS_ADMIN_CLIENT_SECRET: str = cfg("MAS_ADMIN_CLIENT_SECRET", default="")
 SYNAPSE_BOT_USERNAME: str = cfg("SYNAPSE_BOT_USERNAME", default="matrixrmapi-bot")
 WEB_CONCURRENCY: int = cfg("WEB_CONCURRENCY", default=1, cast=int)
 
+INIT_MAX_ATTEMPTS: int = cfg("INIT_MAX_ATTEMPTS", default=5, cast=int)
+INIT_RETRY_WAIT: float = cfg("INIT_RETRY_WAIT", default=5.0, cast=float)
+SERVICE_WAIT_RETRIES: int = cfg("SERVICE_WAIT_RETRIES", default=12, cast=int)
+SERVICE_WAIT_INTERVAL: float = cfg("SERVICE_WAIT_INTERVAL", default=5.0, cast=float)
+
 
 @functools.cache
 def get_manifest() -> dict[str, Any]:
