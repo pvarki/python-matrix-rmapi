@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import os
 from typing import Dict, cast
 from unittest.mock import AsyncMock
 
 import pytest
 
+from matrixrmapi.utils import startup
 from matrixrmapi.utils.startup import apply_pending, ensure_room
 from matrixrmapi.utils.synapse_admin import SynapseAdmin
 from matrixrmapi.types import AdminAction
@@ -139,3 +141,38 @@ async def testensure_room_creates_new_room() -> None:
     )
     assert result == "!new:example.test"
     synapse.create_room.assert_called_once()
+
+
+# ---------------------------------------------------------------------------
+# ready markers
+# ---------------------------------------------------------------------------
+
+
+def testready_workers_counts_marked_workers() -> None:
+    """A marked worker counts; the count is what the healthcheck compares against"""
+    assert startup.ready_workers() == 0
+    startup.mark_ready()
+    assert startup.ready_workers() == 1
+    startup.mark_ready()  # one marker per pid
+    assert startup.ready_workers() == 1
+
+
+def testready_workers_prunes_dead_worker() -> None:
+    """A SIGKILLed worker must not keep counting as ready, or 3/4 reads as 4/4"""
+    pid = os.fork()
+    if pid == 0:
+        os._exit(0)
+    os.waitpid(pid, 0)
+    startup.READY_DIR.mkdir(parents=True, exist_ok=True)
+    stale = startup.READY_DIR / str(pid)
+    stale.touch()
+
+    assert startup.ready_workers() == 0
+    assert not stale.exists()
+
+
+def testclear_ready_drops_own_marker() -> None:
+    """Called at init so a recycled pid cannot inherit the last owner's marker"""
+    startup.mark_ready()
+    startup.clear_ready()
+    assert startup.ready_workers() == 0
