@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import tempfile
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -28,6 +29,11 @@ from .synapse_admin import SynapseAdmin
 
 LOGGER = logging.getLogger(__name__)
 
+INIT_RETRY_BACKOFF = 5.0
+INIT_RETRY_BACKOFF_MAX = 60.0
+
+READY_DIR = Path(tempfile.gettempdir()) / "matrixrmapi_ready"
+
 # (key, alias_suffix, display_name, is_space, is_private)
 ROOMS_CONFIG: List[Tuple[str, str, str, bool, bool]] = [
     ("space", "{d}-space", "{d}", True, False),
@@ -42,6 +48,34 @@ ROOM_TOPICS: Dict[str, str] = {
     "helpdesk": "Report issues and get help from here.",
     "offtopic": "Everything that is not about the topics or work.",
 }
+
+
+def mark_ready() -> None:
+    """Record that this worker has its bot session and rooms."""
+    READY_DIR.mkdir(parents=True, exist_ok=True)
+    (READY_DIR / str(os.getpid())).touch()
+
+
+def clear_ready() -> None:
+    """Drop this worker's marker."""
+    (READY_DIR / str(os.getpid())).unlink(missing_ok=True)
+
+
+def ready_workers() -> int:
+    """How many live workers finished init, pruning markers left behind by dead ones."""
+    if not READY_DIR.is_dir():
+        return 0
+    alive = 0
+    for marker in READY_DIR.iterdir():
+        try:
+            os.kill(int(marker.name), 0)  # signal 0 checks
+        except (ProcessLookupError, ValueError):
+            marker.unlink(missing_ok=True)
+            continue
+        except PermissionError:
+            pass
+        alive += 1
+    return alive
 
 
 async def wait_for_service(
@@ -240,17 +274,12 @@ def setup_mas_admin(app: FastAPI) -> Optional[MasAdmin]:
     return mas
 
 
-async def connect_to_matrix(app: FastAPI) -> None:
-    """Background task: connect to MAS and Synapse, create bot and rooms."""
-    mas = setup_mas_admin(app)
-    if mas is None:
-        LOGGER.error("No MAS admin client — Matrix integration disabled")
-        return
-
+async def init_matrix_once(app: FastAPI, mas: MasAdmin) -> bool:
+    """Init attempt: wait for services, get a bot session, ensure rooms."""
     if not await wait_for_service("MAS", MAS_HEALTH_URL):
-        return
+        return False
     if not await wait_for_service("Synapse", SYNAPSE_URL):
-        return
+        return False
 
     manifest = get_manifest()
     deployment = str(manifest.get("deployment", "pvarki"))
@@ -261,7 +290,7 @@ async def connect_to_matrix(app: FastAPI) -> None:
     ok, is_init = await acquire_bot_token(synapse, mas)
     if not ok:
         await synapse.close()
-        return
+        return False
 
     app.state.synapse = synapse
 
@@ -269,7 +298,8 @@ async def connect_to_matrix(app: FastAPI) -> None:
         room_ids = await ensure_rooms(synapse, deployment, domain)
     except Exception as exc:
         LOGGER.error("Room setup failed: %s", exc)
-        return
+        await synapse.close()
+        return False
 
     if is_init:
         # Only the init worker applies state configuration to avoid redundant
@@ -287,6 +317,7 @@ async def connect_to_matrix(app: FastAPI) -> None:
     # configure_rooms_state's power-level read-modify-write on the space.
     # Set even if configuration partially failed: rooms exist and are usable.
     app.state.rooms = room_ids
+    mark_ready()
     LOGGER.info("Synapse rooms ready: %s", room_ids)
 
     # Apply any promotions/demotions that arrived while rooms were not yet set.
@@ -297,3 +328,36 @@ async def connect_to_matrix(app: FastAPI) -> None:
     if pending:
         LOGGER.info("Processing %d deferred promotion(s)/demotion(s)", len(pending))
         await apply_pending(synapse, room_ids, pending)
+    return True
+
+
+async def connect_to_matrix(app: FastAPI) -> None:
+    """Background task: connect to MAS and Synapse, create bot and rooms.
+
+    Retries with backoff until it succeeds.
+    """
+    clear_ready()
+    mas = setup_mas_admin(app)
+    if mas is None:
+        # Missing credentials
+        LOGGER.error("No MAS admin client; Matrix integration disabled!")
+        return
+
+    backoff = INIT_RETRY_BACKOFF
+    attempt = 0
+    while True:
+        attempt += 1
+        try:
+            if await init_matrix_once(app, mas):
+                return
+            reason = "init did not complete"
+        except Exception as exc:
+            reason = f"{type(exc).__name__}: {exc}"
+        LOGGER.error(
+            "Matrix init attempt %d failed (%s), retrying in %.0fs",
+            attempt,
+            reason,
+            backoff,
+        )
+        await asyncio.sleep(backoff)
+        backoff = min(backoff * 2, INIT_RETRY_BACKOFF_MAX)

@@ -26,6 +26,7 @@ MAS_HEALTH_URL: str = cfg("MAS_HEALTH_URL", default="http://mas:8081")
 MAS_ADMIN_CLIENT_ID: str = cfg("MAS_ADMIN_CLIENT_ID", default="")
 MAS_ADMIN_CLIENT_SECRET: str = cfg("MAS_ADMIN_CLIENT_SECRET", default="")
 SYNAPSE_BOT_USERNAME: str = cfg("SYNAPSE_BOT_USERNAME", default="matrixrmapi-bot")
+WEB_CONCURRENCY: int = cfg("WEB_CONCURRENCY", default=1, cast=int)
 
 
 @functools.cache

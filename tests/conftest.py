@@ -1,6 +1,7 @@
 """pytest automagics"""
 
 from typing import Generator, Dict
+from pathlib import Path
 import logging
 import os
 import uuid
@@ -11,12 +12,23 @@ from fastapi.testclient import TestClient
 
 from matrixrmapi.app import get_app
 from matrixrmapi.config import get_manifest
+from matrixrmapi.utils import startup
 
 # Default is "ecs" and it's not great for tests
 os.environ["LOG_CONSOLE_FORMATTER"] = "local"
 init_logging(logging.DEBUG)
 LOGGER = logging.getLogger(__name__)
 APP = get_app()
+
+
+@pytest.fixture(autouse=True)
+def ready_dir(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> Generator[Path, None, None]:
+    """Worker ready markers per-test"""
+    target = tmp_path / "ready"
+    monkeypatch.setattr(startup, "READY_DIR", target)
+    yield target
 
 
 @pytest.fixture

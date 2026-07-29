@@ -3,9 +3,11 @@
 from unittest.mock import AsyncMock, patch
 
 import httpx
+import pytest
 from fastapi.testclient import TestClient
 
 from matrixrmapi import __version__
+from matrixrmapi.utils.startup import mark_ready
 from .conftest import APP
 
 
@@ -26,6 +28,7 @@ def test_healthcheck_healthy(mtlsclient: TestClient) -> None:
     """With integration initialised and Synapse/MAS responding the service reports healthy"""
     APP.state.synapse = AsyncMock()
     APP.state.rooms = {"space": "!space:x"}
+    mark_ready()
     try:
         with patch(
             "matrixrmapi.api.healthcheck.httpx.AsyncClient.get",
@@ -47,6 +50,7 @@ def test_healthcheck_synapse_down(mtlsclient: TestClient) -> None:
     """A failing Synapse health endpoint makes the service unhealthy"""
     APP.state.synapse = AsyncMock()
     APP.state.rooms = {"space": "!space:x"}
+    mark_ready()
     try:
         with patch(
             "matrixrmapi.api.healthcheck.httpx.AsyncClient.get",
@@ -57,6 +61,25 @@ def test_healthcheck_synapse_down(mtlsclient: TestClient) -> None:
         assert resp.status_code == 200
         payload = resp.json()
         assert payload["healthy"] is False
+    finally:
+        del APP.state.synapse
+        del APP.state.rooms
+
+
+def test_healthcheck_unhealthy_when_a_worker_is_missing(
+    mtlsclient: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """All workers need to be ready with synapse/mas credentials to quarantee functionality"""
+    monkeypatch.setattr("matrixrmapi.api.healthcheck.WEB_CONCURRENCY", 4)
+    APP.state.synapse = AsyncMock()
+    APP.state.rooms = {"space": "!space:x"}
+    mark_ready()
+    try:
+        resp = mtlsclient.get("/api/v1/healthcheck")
+        assert resp.status_code == 200
+        payload = resp.json()
+        assert payload["healthy"] is False
+        assert payload["extra"] == "only 1/4 workers initialised"
     finally:
         del APP.state.synapse
         del APP.state.rooms
