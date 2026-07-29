@@ -2,16 +2,14 @@
 
 from fastapi.routing import APIRouter
 
-from .usercrud import router as usercrud_router
-from .clientinfo import router as clientinfo_router
 from .admininfo import router as admininfo_router
-from .healthcheck import router as healthcheck_router
+from .clientinfo import router as clientinfo_router
 from .description import router as description_router
-from .instructions import router as instructions_router
-
 from .description import router_v2 as description_router_v2
+from .healthcheck import router as healthcheck_router
+from .instructions import router as instructions_router
+from .usercrud import router as usercrud_router
 from .userinfo import router as userinfo_router
-
 
 all_routers = APIRouter()
 all_routers.include_router(usercrud_router, prefix="/users", tags=["users"])

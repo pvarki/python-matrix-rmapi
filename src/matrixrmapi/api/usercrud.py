@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict, Optional
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -12,9 +11,9 @@ from libpvarki.schemas.generic import OperationResultResponse
 from libpvarki.schemas.product import UserCRUDRequest
 
 from ..config import get_manifest, get_server_domain
+from ..types import AdminAction
 from ..utils.mas_admin import MasAdmin
 from ..utils.synapse_admin import SynapseAdmin, matrix_user_id
-from ..types import AdminAction
 
 LOGGER = logging.getLogger(__name__)
 
@@ -29,25 +28,25 @@ def comes_from_rm(request: Request) -> None:
         raise HTTPException(status_code=403)
 
 
-def get_synapse(request: Request) -> Optional[SynapseAdmin]:
+def get_synapse(request: Request) -> SynapseAdmin | None:
     """Return SynapseAdmin from app state, or None if not yet ready."""
-    val: Optional[SynapseAdmin] = getattr(request.app.state, "synapse", None)
+    val: SynapseAdmin | None = getattr(request.app.state, "synapse", None)
     return val
 
 
-def get_mas(request: Request) -> Optional[MasAdmin]:
+def get_mas(request: Request) -> MasAdmin | None:
     """Return MasAdmin from app state, or None if not yet ready."""
-    val: Optional[MasAdmin] = getattr(request.app.state, "mas", None)
+    val: MasAdmin | None = getattr(request.app.state, "mas", None)
     return val
 
 
-def get_rooms(request: Request) -> Optional[Dict[str, str]]:
+def get_rooms(request: Request) -> dict[str, str] | None:
     """Return room IDs dict from app state, or None if not yet ready."""
-    val: Optional[Dict[str, str]] = getattr(request.app.state, "rooms", None)
+    val: dict[str, str] | None = getattr(request.app.state, "rooms", None)
     return val
 
 
-def public_room_ids(rooms: Dict[str, str]) -> list[str]:
+def public_room_ids(rooms: dict[str, str]) -> list[str]:
     """Room IDs for the space + the three public rooms (not admin channel)."""
     return [
         rooms[k] for k in ("space", "general", "helpdesk", "offtopic") if k in rooms
@@ -132,7 +131,7 @@ async def apply_admin_action(
                 await synapse.force_join(admin_id, uid)
             else:
                 await synapse.kick(admin_id, uid)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         LOGGER.error("Failed to %s %s: %s", action.value, uid, exc)
         return OperationResultResponse(success=False)
     LOGGER.info("%sd %s (power level %d)", action.value.capitalize(), uid, level)

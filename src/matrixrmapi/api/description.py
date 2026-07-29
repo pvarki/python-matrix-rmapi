@@ -1,12 +1,11 @@
 """Descriptions API"""
 
-from typing import Literal, Optional
 import logging
+from typing import Literal
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field, Extra
 from libpvarki.schemas.product import ProductDescription
-
+from pydantic import BaseModel, Extra, Field
 
 LOGGER = logging.getLogger(__name__)
 
@@ -31,7 +30,7 @@ class ProductDescriptionExtended(BaseModel):
         description="Short name for the product, used as slug/key in dicts and urls"
     )
     title: str = Field(description="Fancy name for the product")
-    icon: Optional[str] = Field(description="URL for icon")
+    icon: str | None = Field(description="URL for icon")
     description: str = Field(description="Short-ish description of the product")
     language: str = Field(description="Language of this response")
     docs: str = Field(description="Link to documentation")
@@ -49,7 +48,7 @@ class ProductDescriptionExtended(BaseModel):
 )
 async def return_product_description(language: str) -> ProductDescription:
     """Fetch description from each product in manifest"""
-    LOGGER.debug("Got language: {}".format(language))
+    LOGGER.debug(f"Got language: {language}")
     if language == "fi":
         return ProductDescription(
             shortname=PRODUCT_SHORTNAME,

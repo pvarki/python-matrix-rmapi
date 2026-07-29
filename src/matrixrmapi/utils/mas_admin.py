@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Dict, Optional, Tuple
+from typing import Self
 from urllib.parse import quote
 
 import httpx
@@ -36,7 +36,7 @@ class MasAdmin:
         self._url = mas_url.rstrip("/")
         self._client_id = client_id
         self._client_secret = client_secret
-        self._token: Optional[str] = None
+        self._token: str | None = None
         self._token_expires: float = 0.0
         self._client: httpx.AsyncClient = httpx.AsyncClient()
 
@@ -44,10 +44,10 @@ class MasAdmin:
         """Close the underlying HTTP client."""
         await self._client.aclose()
 
-    async def __aenter__(self) -> "MasAdmin":
+    async def __aenter__(self) -> Self:
         return self
 
-    async def __aexit__(self, *_: Any) -> None:
+    async def __aexit__(self, *_: object) -> None:
         await self.close()
 
     async def _ensure_admin_token(self) -> str:
@@ -68,10 +68,10 @@ class MasAdmin:
         )
         return self._token
 
-    async def _auth(self) -> Dict[str, str]:
+    async def _auth(self) -> dict[str, str]:
         return {"Authorization": f"Bearer {await self._ensure_admin_token()}"}
 
-    async def user_ulid_by_username(self, localpart: str) -> Optional[str]:
+    async def user_ulid_by_username(self, localpart: str) -> str | None:
         """Return the MAS user ULID for localpart, or None if not found."""
         encoded = quote(localpart, safe="")
         resp = await self._client.get(
@@ -109,7 +109,7 @@ class MasAdmin:
         human_name: str,
         device_id: str = BOT_DEVICE_ID,
         expires_in: int = BOT_TOKEN_EXPIRES_IN,
-    ) -> Tuple[str, float]:
+    ) -> tuple[str, float]:
         """Create an expiring personal session token for the bot user.
 
         Returns (access_token, expires_in seconds).

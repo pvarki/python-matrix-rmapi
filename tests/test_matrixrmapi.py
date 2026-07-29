@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 
 from matrixrmapi import __version__
 from matrixrmapi.utils.startup import mark_ready
+
 from .conftest import APP
 
 

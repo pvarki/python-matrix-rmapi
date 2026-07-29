@@ -6,7 +6,7 @@ import asyncio
 import logging
 import re
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Self
 from urllib.parse import quote
 
 import httpx
@@ -41,23 +41,23 @@ class SynapseAdmin:
     def __init__(self, synapse_url: str, server_domain: str) -> None:
         self._url = synapse_url.rstrip("/")
         self._domain = server_domain
-        self._token: Optional[str] = None
+        self._token: str | None = None
         self._token_expires: float = 0.0
         self._token_lock: asyncio.Lock = asyncio.Lock()
-        self._mas: Optional[MasAdmin] = None
-        self._bot_username: Optional[str] = None
-        self._bot_ulid: Optional[str] = None
-        self._bot_user_id: Optional[str] = None
+        self._mas: MasAdmin | None = None
+        self._bot_username: str | None = None
+        self._bot_ulid: str | None = None
+        self._bot_user_id: str | None = None
         self._client: httpx.AsyncClient = httpx.AsyncClient()
 
     async def close(self) -> None:
         """Close the underlying HTTP client."""
         await self._client.aclose()
 
-    async def __aenter__(self) -> "SynapseAdmin":
+    async def __aenter__(self) -> Self:
         return self
 
-    async def __aexit__(self, *_: Any) -> None:
+    async def __aexit__(self, *_: object) -> None:
         await self.close()
 
     # ------------------------------------------------------------------
@@ -109,10 +109,10 @@ class SynapseAdmin:
             )
             resp.raise_for_status()
             LOGGER.info("Rate-limit override applied for %s", user_id)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             LOGGER.warning("Failed to override rate limit for %s: %s", user_id, exc)
 
-    async def _auth(self) -> Dict[str, str]:
+    async def _auth(self) -> dict[str, str]:
         """Return the bearer header, creating a new session when missing or expired."""
         if not self._token:
             raise RuntimeError("SynapseAdmin.setup() has not been called")
@@ -126,7 +126,7 @@ class SynapseAdmin:
     # Room / space management
     # ------------------------------------------------------------------
 
-    async def room_id_for_alias(self, alias: str) -> Optional[str]:
+    async def room_id_for_alias(self, alias: str) -> str | None:
         """Return room_id for alias, or None if not found."""
         encoded = quote(alias, safe="")
         resp = await self._client.get(
@@ -149,7 +149,7 @@ class SynapseAdmin:
     ) -> str:
         """Create a room or space; return room_id."""
         local_part = alias.split(":")[0].lstrip("#")
-        body: Dict[str, Any] = {
+        body: dict[str, Any] = {
             "name": name,
             "room_alias_name": local_part,
             "preset": "private_chat" if is_private else "public_chat",
@@ -190,7 +190,7 @@ class SynapseAdmin:
         self,
         room_id: str,
         event_type: str,
-        content: Dict[str, Any],
+        content: dict[str, Any],
         state_key: str = "",
     ) -> None:
         """Send a room state event."""
@@ -237,7 +237,7 @@ class SynapseAdmin:
                 return
         resp.raise_for_status()
 
-    async def get_power_levels(self, room_id: str) -> Dict[str, Any]:
+    async def get_power_levels(self, room_id: str) -> dict[str, Any]:
         """Get the m.room.power_levels state for a room."""
         resp = await self._client.get(
             f"{self._url}/_matrix/client/v3/rooms/{room_id}/state/m.room.power_levels",
@@ -252,7 +252,7 @@ class SynapseAdmin:
     ) -> None:
         """Set a single user's power level in a room."""
         levels = await self.get_power_levels(room_id)
-        users: Dict[str, int] = dict(levels.get("users", {}))
+        users: dict[str, int] = dict(levels.get("users", {}))
         if level == 0:
             users.pop(user_id, None)
         else:
@@ -300,7 +300,7 @@ class SynapseAdmin:
     # ------------------------------------------------------------------
 
     async def set_power_level_in_rooms(
-        self, room_ids: List[str], user_id: str, level: int
+        self, room_ids: list[str], user_id: str, level: int
     ) -> None:
         """Set power level for user across multiple rooms."""
         for room_id in room_ids:

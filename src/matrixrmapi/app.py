@@ -5,19 +5,20 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Optional
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from libpvarki.logging import init_logging
 
 from matrixrmapi import __version__
-from .config import LOG_LEVEL, get_manifest
+
 from .api import all_routers, all_routers_v2
+from .config import LOG_LEVEL, get_manifest
 from .utils.mas_admin import MasAdmin
-from .utils.synapse_admin import SynapseAdmin
 from .utils.startup import connect_to_matrix
+from .utils.synapse_admin import SynapseAdmin
 
 LOGGER = logging.getLogger(__name__)
 
@@ -32,10 +33,10 @@ async def app_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         task.cancel()
         with contextlib.suppress(asyncio.CancelledError):
             await task
-        synapse: Optional[SynapseAdmin] = getattr(app.state, "synapse", None)
+        synapse: SynapseAdmin | None = getattr(app.state, "synapse", None)
         if synapse:
             await synapse.close()
-        mas: Optional[MasAdmin] = getattr(app.state, "mas", None)
+        mas: MasAdmin | None = getattr(app.state, "mas", None)
         if mas:
             await mas.close()
 
