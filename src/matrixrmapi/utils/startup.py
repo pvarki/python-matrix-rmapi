@@ -13,10 +13,14 @@ import httpx
 from fastapi import FastAPI
 
 from ..config import (
+    INIT_MAX_ATTEMPTS,
+    INIT_RETRY_WAIT,
     MAS_ADMIN_CLIENT_ID,
     MAS_ADMIN_CLIENT_SECRET,
     MAS_HEALTH_URL,
     MAS_URL,
+    SERVICE_WAIT_INTERVAL,
+    SERVICE_WAIT_RETRIES,
     SYNAPSE_BOT_USERNAME,
     SYNAPSE_URL,
     get_manifest,
@@ -27,9 +31,6 @@ from .mas_admin import MasAdmin
 from .synapse_admin import SynapseAdmin
 
 LOGGER = logging.getLogger(__name__)
-
-INIT_RETRY_BACKOFF = 5.0
-INIT_RETRY_BACKOFF_MAX = 60.0
 
 READY_DIR = Path(tempfile.gettempdir()) / "matrixrmapi_ready"
 
@@ -78,7 +79,10 @@ def ready_workers() -> int:
 
 
 async def wait_for_service(
-    name: str, url: str, retries: int = 60, interval: float = 5.0
+    name: str,
+    url: str,
+    retries: int = SERVICE_WAIT_RETRIES,
+    interval: float = SERVICE_WAIT_INTERVAL,
 ) -> bool:
     """Poll a service's /health until it responds 200. Returns True on success."""
     LOGGER.info("Waiting for %s at %s ...", name, url)
@@ -93,9 +97,7 @@ async def wait_for_service(
                 LOGGER.debug("%s health check failed: %s", name, exc)
             if attempt < retries - 1:
                 await asyncio.sleep(interval)
-    LOGGER.error(
-        "%s not reachable after %d attempts — integration disabled", name, retries
-    )
+    LOGGER.error("%s not reachable after %d attempts", name, retries)
     return False
 
 
@@ -275,9 +277,11 @@ def setup_mas_admin(app: FastAPI) -> MasAdmin | None:
 
 async def init_matrix_once(app: FastAPI, mas: MasAdmin) -> bool:
     """Init attempt: wait for services, get a bot session, ensure rooms."""
-    if not await wait_for_service("MAS", MAS_HEALTH_URL):
-        return False
-    if not await wait_for_service("Synapse", SYNAPSE_URL):
+    mas_ok, synapse_ok = await asyncio.gather(
+        wait_for_service("MAS", MAS_HEALTH_URL),
+        wait_for_service("Synapse", SYNAPSE_URL),
+    )
+    if not (mas_ok and synapse_ok):
         return False
 
     manifest = get_manifest()
@@ -297,6 +301,7 @@ async def init_matrix_once(app: FastAPI, mas: MasAdmin) -> bool:
         room_ids = await ensure_rooms(synapse, deployment, domain)
     except Exception as exc:  # noqa: BLE001
         LOGGER.error("Room setup failed: %s", exc)
+        app.state.synapse = None
         await synapse.close()
         return False
 
@@ -333,7 +338,7 @@ async def init_matrix_once(app: FastAPI, mas: MasAdmin) -> bool:
 async def connect_to_matrix(app: FastAPI) -> None:
     """Background task: connect to MAS and Synapse, create bot and rooms.
 
-    Retries with backoff until it succeeds.
+    Retries a bounded number of times with a fixed wait, then gives up.
     """
     clear_ready()
     mas = setup_mas_admin(app)
@@ -342,21 +347,25 @@ async def connect_to_matrix(app: FastAPI) -> None:
         LOGGER.error("No MAS admin client; Matrix integration disabled!")
         return
 
-    backoff = INIT_RETRY_BACKOFF
-    attempt = 0
-    while True:
-        attempt += 1
+    for attempt in range(1, INIT_MAX_ATTEMPTS + 1):
         try:
             if await init_matrix_once(app, mas):
                 return
             reason = "init did not complete"
         except Exception as exc:  # noqa: BLE001
             reason = f"{type(exc).__name__}: {exc}"
+        if attempt == INIT_MAX_ATTEMPTS:
+            LOGGER.error(
+                "Matrix init failed for a worker after %d attempts (%s)",
+                INIT_MAX_ATTEMPTS,
+                reason,
+            )
+            return
         LOGGER.error(
-            "Matrix init attempt %d failed (%s), retrying in %.0fs",
+            "Matrix init attempt %d/%d failed (%s), retrying in %.0fs",
             attempt,
+            INIT_MAX_ATTEMPTS,
             reason,
-            backoff,
+            INIT_RETRY_WAIT,
         )
-        await asyncio.sleep(backoff)
-        backoff = min(backoff * 2, INIT_RETRY_BACKOFF_MAX)
+        await asyncio.sleep(INIT_RETRY_WAIT)
