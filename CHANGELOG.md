@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.1](https://github.com/pvarki/python-matrix-rmapi/compare/v1.3.0...v1.3.1) (2026-07-30)
+
+
+### Bug Fixes
+
+* allow configuring connection attempts ([c18cb81](https://github.com/pvarki/python-matrix-rmapi/commit/c18cb81f8cb2800f9286c7fea35531a44cd44ca1))
+* cli import ([62313cb](https://github.com/pvarki/python-matrix-rmapi/commit/62313cb8e2278f837785773d98086a90c0d6a01f))
+* healthcheck requires all workers ([8e20c8c](https://github.com/pvarki/python-matrix-rmapi/commit/8e20c8c7799ca2c21afe2b501d56aafdc4eb69b0))
+
+
+### Other Changes
+
+* update ruff version ([828d70c](https://github.com/pvarki/python-matrix-rmapi/commit/828d70c96985e0b4bed9250d7216202dcb9f822c))
+
 ## [1.3.0](https://github.com/pvarki/python-matrix-rmapi/compare/v1.2.2...v1.3.0) (2026-07-14)
 
 
