@@ -16,3 +16,35 @@ jobs:
         with:
           snyk-org: deployapp-products
           snyk-token: ${{ secrets.SNYK_TOKEN }}
+
+  # Manual rebuild, release_please.yaml handles releases
+  publish-image:
+    if: github.event_name == 'workflow_dispatch' && github.ref_name == 'main'
+    runs-on: arc-runner-set
+    permissions:
+      contents: read
+      packages: write
+    concurrency:
+      group: publish-image-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - name: Check out the last released version
+        run: |
+          SEMVER=$(python3 -c "import json; print(json.load(open('.release-please-manifest.json'))['.'])")
+          echo "Rebuilding v${SEMVER}"
+          git checkout "v${SEMVER}"
+      - name: Build and publish Docker image
+        uses: ./.github/actions/publish-image
+        with:
+          product: matrix
+          component: integration
+          dockerhub-username: ${{ vars.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          acr-repo: ${{ vars.ACR_REPO }}
+          acr-username: ${{ vars.ACR_USERNAME }}
+          acr-token: ${{ secrets.ACR_TOKEN }}

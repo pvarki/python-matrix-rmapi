@@ -74,8 +74,10 @@ jobs:
         run: docker build --target test -t matrixrmapi:test .
       - name: Build production target
         run: docker build --target production -t matrixrmapi:production .
+
   publish:
     needs: [test, snyk-test, docker-build-and-verify]
+    if: github.event_name == 'pull_request'
     runs-on: arc-runner-set
     permissions:
       contents: read
