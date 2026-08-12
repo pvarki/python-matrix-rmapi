@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/pvarki/python-matrix-rmapi/compare/v1.3.1...v1.3.2) (2026-08-12)
+
+
+### Other Changes
+
+* allow rebuildinging image ([4a6f0a5](https://github.com/pvarki/python-matrix-rmapi/commit/4a6f0a54ac1e3eb727a9bacfa4387e9fdf09cf46))
+
 ## [1.3.1](https://github.com/pvarki/python-matrix-rmapi/compare/v1.3.0...v1.3.1) (2026-07-30)
 
 
