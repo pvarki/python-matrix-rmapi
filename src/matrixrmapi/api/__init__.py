@@ -8,6 +8,7 @@ from .admininfo import router as admininfo_router
 from .healthcheck import router as healthcheck_router
 from .description import router as description_router
 from .instructions import router as instructions_router
+from .interop import router as interop_router
 
 from .description import router_v2 as description_router_v2
 from .userinfo import router as userinfo_router
@@ -26,6 +27,7 @@ all_routers.include_router(
 all_routers.include_router(
     instructions_router, prefix="/instructions", tags=["instructions"]
 )
+all_routers.include_router(interop_router, prefix="/interop", tags=["interop"])
 
 all_routers_v2 = APIRouter()
 all_routers_v2.include_router(

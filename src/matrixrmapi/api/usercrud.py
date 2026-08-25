@@ -11,6 +11,7 @@ from libpvarki.schemas.generic import OperationResultResponse
 from libpvarki.schemas.product import UserCRUDRequest
 
 from ..config import get_manifest, get_server_domain
+from ..synapseutils.startup import PUBLIC_ROOM_KEYS
 from ..synapseutils.synapse_admin import SynapseAdmin, matrix_user_id
 from ..types import AdminAction
 
@@ -41,9 +42,7 @@ def get_rooms(request: Request) -> Optional[Dict[str, str]]:
 
 def public_room_ids(rooms: Dict[str, str]) -> list[str]:
     """Room IDs for the space + the three public rooms (not admin channel)."""
-    return [
-        rooms[k] for k in ("space", "general", "helpdesk", "offtopic") if k in rooms
-    ]
+    return [rooms[k] for k in PUBLIC_ROOM_KEYS if k in rooms]
 
 
 @router.post("/created")

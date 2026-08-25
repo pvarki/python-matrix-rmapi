@@ -13,6 +13,8 @@ matrixrmapi is the Deploy App integration layer for Matrix/Synapse. It has two r
    and configures their state.
 2. **User lifecycle** — it receives CRUD callbacks from Rasenmaeher over mTLS and reflects each event into
    Synapse.
+3. **Product interop** — it maintains a read-only ingest bot and hands its access token to peer products
+   (currently BattleLog) that Rasenmaeher has granted interop with.
 
 Authentication
 ^^^^^^^^^^^^^^
@@ -34,8 +36,11 @@ The startup runs as a background task so the HTTP server is available immediatel
        alias otherwise).
     5. Apply idempotent state events to every room: name, encryption, join rules,
        history visibility, topics.
-    6. Expose ``app.state.rooms`` — this is the gate that CRUD endpoints check.
-    7. Drain any promotions/demotions that arrived while rooms were not yet ready
+    6. Ensure the BattleLog ingest bot exists, join it to the Space, every standard
+       room and every child of the Space, and cache its access token (see
+       "Product interop" below).
+    7. Expose ``app.state.rooms`` — this is the gate that CRUD endpoints check.
+    8. Drain any promotions/demotions that arrived while rooms were not yet ready
        (see "Deferred queue" below).
 
 The admin bot is created at power level 200 in all rooms via ``power_level_content_override``
@@ -68,6 +73,36 @@ Rooms created
      - Private room; only admins are joined
 
 All non-space rooms use ``m.megolm.v1.aes-sha2`` encryption and ``joined`` history visibility.
+
+The BattleLog ingest bot is joined to all of them, and to any room a user created inside
+the Space. Because they are all end-to-end encrypted, a consumer without megolm support
+sees ``m.room.encrypted`` events it cannot read — BattleLog says so per room rather than
+silently ingesting nothing. Only an explicitly unencrypted room yields plaintext.
+
+Product interop
+^^^^^^^^^^^^^^^
+
+``POST /api/v1/interop/add``
+    Rasenmaeher-only (checked by cert CN). Records a peer product's cert CN as allowed to
+    fetch credentials from us. Idempotent. Called by Rasenmaeher's
+    ``POST /api/v1/product/interop/matrix`` on behalf of the peer.
+
+``GET /api/v1/interop/authz``
+    Called by the peer product itself over mTLS. Returns
+    ``{"type": "bearer-token", "token": ...}`` with the ingest bot's Matrix access token,
+    or ``403`` if that CN was never registered, or ``503`` if Synapse startup has not
+    produced the bot yet (retryable).
+
+The ingest bot (``@battlelog-bot:<domain>`` by default) is a **plain local user, not a
+server admin**. Its token can only read and write the rooms it has been joined to. It is
+created with the admin create-or-modify API and given a token with the admin
+"login as user" API, so no password is ever set and the registration shared secret is not
+involved. Neither ``SYNAPSE_REGISTRATION_SECRET`` nor the admin bot's own token is ever
+handed to a peer product.
+
+Both the token and the peer registry are files rather than process state, because
+gunicorn runs several workers and ``/interop/add`` may land on a different one than the
+``/interop/authz`` that follows it.
 
 User lifecycle endpoints
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -128,6 +163,15 @@ Configuration
    * - ``SERVER_DOMAIN``
      - *(from kraftwerk manifest)*
      - Matrix server_name; derived automatically from the product DNS label
+   * - ``BATTLELOG_BOT_USERNAME``
+     - ``battlelog-bot``
+     - Local part of the read-only ingest bot handed to BattleLog
+   * - ``BATTLELOG_TOKEN_FILE``
+     - ``/data/persistent/battlelog_bot_token``
+     - File where the ingest bot's access token is cached between restarts
+   * - ``INTEROP_PRODUCTS_FILE``
+     - ``/data/persistent/interop_products.json``
+     - File listing cert CNs Rasenmaeher has granted interop with us
 
 Docker
 ------

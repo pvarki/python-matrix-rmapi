@@ -84,25 +84,29 @@ class SynapseAdmin:
 
     async def _exempt_bot_from_ratelimit(self, bot_username: str) -> None:
         """Remove rate-limit restrictions for the bot user so concurrent room setup never gets 429."""
-        user_id = f"@{bot_username}:{self._domain}"
-        encoded = quote(user_id, safe="")
-        try:
-            resp = await self._client.post(
-                f"{self._url}/_synapse/admin/v1/users/{encoded}/override_ratelimit",
-                headers=self._auth,
-                json={"messages_per_second": 0, "burst_count": 0},
-                timeout=10.0,
-            )
-            resp.raise_for_status()
-            LOGGER.info("Rate-limit override applied for %s", user_id)
-        except Exception as exc:  # pylint: disable=broad-except
-            LOGGER.warning("Failed to override rate limit for %s: %s", user_id, exc)
+        await self.override_ratelimit(f"@{bot_username}:{self._domain}")
 
     async def _validate(self, token: str) -> bool:
         """Return True if token is accepted by the admin API."""
         try:
             resp = await self._client.get(
                 f"{self._url}/_synapse/admin/v1/server_version",
+                headers={"Authorization": f"Bearer {token}"},
+                timeout=10.0,
+            )
+            return resp.status_code == 200
+        except Exception:  # pylint: disable=broad-except
+            return False
+
+    async def validate_user_token(self, token: str) -> bool:
+        """Return True if *token* is a usable access token for any local user.
+
+        Deliberately not _validate(): that hits the admin API, which 403s for a
+        non-admin token, so it cannot check the ingest bot's token.
+        """
+        try:
+            resp = await self._client.get(
+                f"{self._url}/_matrix/client/v3/account/whoami",
                 headers={"Authorization": f"Bearer {token}"},
                 timeout=10.0,
             )
@@ -247,6 +251,82 @@ class SynapseAdmin:
     # ------------------------------------------------------------------
     # User management
     # ------------------------------------------------------------------
+
+    async def ensure_user(
+        self, localpart: str, *, admin: bool = False, displayname: str = ""
+    ) -> str:
+        """Create or update a local account, returns the MXID. Idempotent.
+
+        Uses the admin create-or-modify API rather than shared-secret registration:
+        no HMAC, no registration secret, and re-running it is a no-op. No password
+        is ever set. Setting one would log out all the user's devices and so
+        invalidate a previously minted token on every restart, and password login
+        is disabled server-wide anyway.
+        """
+        user_id = f"@{localpart}:{self._domain}"
+        body: Dict[str, Any] = {"admin": admin, "deactivated": False}
+        if displayname:
+            body["displayname"] = displayname
+        resp = await self._client.put(
+            f"{self._url}/_synapse/admin/v2/users/{quote(user_id, safe='')}",
+            headers=self._auth,
+            json=body,
+            timeout=30.0,
+        )
+        resp.raise_for_status()
+        return user_id
+
+    async def mint_access_token(self, user_id: str) -> str:
+        """Mint an access token for a local user via the admin "login as user" API.
+
+        The token does not expire and is not bound to a device, which is what a
+        headless reader wants. It stays valid until an admin logs the user out.
+        """
+        resp = await self._client.post(
+            f"{self._url}/_synapse/admin/v1/users/{quote(user_id, safe='')}/login",
+            headers=self._auth,
+            json={},
+            timeout=30.0,
+        )
+        resp.raise_for_status()
+        return str(resp.json()["access_token"])
+
+    async def override_ratelimit(self, user_id: str) -> None:
+        """Remove rate limits for a service account. Logs and continues on failure."""
+        try:
+            resp = await self._client.post(
+                f"{self._url}/_synapse/admin/v1/users/{quote(user_id, safe='')}/override_ratelimit",
+                headers=self._auth,
+                json={"messages_per_second": 0, "burst_count": 0},
+                timeout=10.0,
+            )
+            resp.raise_for_status()
+            LOGGER.info("Rate-limit override applied for %s", user_id)
+        except Exception as exc:  # pylint: disable=broad-except
+            LOGGER.warning("Failed to override rate limit for %s: %s", user_id, exc)
+
+    async def space_children(self, space_id: str) -> List[str]:
+        """Room IDs of a space's children, so rooms users created also get covered.
+
+        Returns an empty list on failure: a missing hierarchy must not stop the
+        standard rooms from being handled.
+        """
+        try:
+            resp = await self._client.get(
+                f"{self._url}/_matrix/client/v1/rooms/{quote(space_id, safe='')}/hierarchy",
+                headers=self._auth,
+                params={"limit": 100, "max_depth": 1},
+                timeout=30.0,
+            )
+            resp.raise_for_status()
+        except Exception as exc:  # pylint: disable=broad-except
+            LOGGER.warning("Could not read hierarchy of space %s: %s", space_id, exc)
+            return []
+        return [
+            str(room["room_id"])
+            for room in resp.json().get("rooms", [])
+            if room.get("room_id") and room["room_id"] != space_id
+        ]
 
     async def force_join(self, room_id: str, user_id: str) -> None:
         """Force-join user to room via admin API.

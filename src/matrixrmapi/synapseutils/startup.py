@@ -19,6 +19,7 @@ from ..config import (
     get_server_domain,
 )
 from ..types import AdminAction, CALL_EVENTS_DEFAULT_LEVEL
+from .battlelog import ensure_battlelog_bot
 from .synapse_admin import SynapseAdmin
 
 LOGGER = logging.getLogger(__name__)
@@ -31,6 +32,10 @@ ROOMS_CONFIG: List[Tuple[str, str, str, bool, bool]] = [
     ("helpdesk", "{d}-helpdesk", "99-Helpdesk", False, False),
     ("offtopic", "{d}-offtopic", "97-Offtopic", False, False),
 ]
+
+# Space plus the rooms every user belongs to. The admin channel is deliberately
+# absent: only promoted admins are joined to it.
+PUBLIC_ROOM_KEYS: Tuple[str, ...] = ("space", "general", "helpdesk", "offtopic")
 
 ROOM_TOPICS: Dict[str, str] = {
     "general": "Work discussion that does not fit any other room.",
@@ -151,9 +156,7 @@ async def apply_pending(
     synapse: SynapseAdmin, rooms: Dict[str, str], pending: Dict[str, AdminAction]
 ) -> None:
     """Apply promotions/demotions that were queued while Synapse was still starting."""
-    public_ids = [
-        rooms[k] for k in ("space", "general", "helpdesk", "offtopic") if k in rooms
-    ]
+    public_ids = [rooms[k] for k in PUBLIC_ROOM_KEYS if k in rooms]
     admin_id = rooms.get("admin")
     for uid, action in pending.items():
         try:
@@ -259,6 +262,12 @@ async def synapse_startup(app: FastAPI) -> None:
             await configure_rooms_state(synapse, room_ids, deployment)
         except Exception as exc:  # pylint: disable=broad-except
             LOGGER.error("Room configuration failed (rooms still usable): %s", exc)
+        # Own try: a room-config failure must not cost us the ingest bot, and a
+        # missing bot must not look like a room-config failure.
+        try:
+            await ensure_battlelog_bot(synapse, room_ids)
+        except Exception as exc:  # pylint: disable=broad-except
+            LOGGER.error("BattleLog ingest bot setup failed: %s", exc)
     else:
         LOGGER.info(
             "Follower worker: skipping room state configuration (handled by init worker)"

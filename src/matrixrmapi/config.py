@@ -33,6 +33,24 @@ SYNAPSE_TOKEN_FILE: Path = cfg(
     default=Path("/data/persistent/synapse_admin_token"),
 )
 
+# Read-only ingest bot handed to BattleLog over the product interop API. It is a
+# plain local user, not a server admin: its token can only read and write the
+# rooms it has been joined to.
+BATTLELOG_BOT_USERNAME: str = cfg("BATTLELOG_BOT_USERNAME", default="battlelog-bot")
+BATTLELOG_TOKEN_FILE: Path = cfg(
+    "BATTLELOG_TOKEN_FILE",
+    cast=Path,
+    default=Path("/data/persistent/battlelog_bot_token"),
+)
+# Cert CNs of products RASENMAEHER has granted interop with us. A file rather than
+# app.state because gunicorn runs several workers and /interop/add may land on a
+# different one than the /interop/authz that follows it.
+INTEROP_PRODUCTS_FILE: Path = cfg(
+    "INTEROP_PRODUCTS_FILE",
+    cast=Path,
+    default=Path("/data/persistent/interop_products.json"),
+)
+
 
 @functools.cache
 def get_manifest() -> Dict[str, Any]:

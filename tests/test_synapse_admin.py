@@ -404,3 +404,79 @@ async def test_set_power_level_in_rooms_calls_each_room() -> None:
         await sa.set_power_level_in_rooms(room_ids, "@user:example.test", 100)
         assert mock_get.call_count == 3
         assert mock_put.call_count == 3
+
+
+# ---------------------------------------------------------------------------
+# ensure_user / mint_access_token / space_children
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_ensure_user_never_sets_a_password() -> None:
+    """A password would log out all devices and kill the previously minted token."""
+    sa = _make_synapse()
+    with patch.object(sa._client, "put", new_callable=AsyncMock) as mock_put:  # pylint: disable=protected-access
+        mock_put.return_value = _fake(201, {"name": "@bot:example.test"})
+        user_id = await sa.ensure_user("bot", displayname="Bot")
+    assert user_id == "@bot:example.test"
+    body = mock_put.call_args.kwargs["json"]
+    assert "password" not in body
+    assert body["admin"] is False
+    assert body["displayname"] == "Bot"
+
+
+@pytest.mark.asyncio
+async def test_ensure_user_omits_empty_displayname() -> None:
+    """An empty displayname must not be sent, it would blank an existing one."""
+    sa = _make_synapse()
+    with patch.object(sa._client, "put", new_callable=AsyncMock) as mock_put:  # pylint: disable=protected-access
+        mock_put.return_value = _fake(200, {"name": "@bot:example.test"})
+        await sa.ensure_user("bot")
+    assert "displayname" not in mock_put.call_args.kwargs["json"]
+
+
+@pytest.mark.asyncio
+async def test_mint_access_token() -> None:
+    """The admin login-as-user API returns the token we hand to BattleLog."""
+    sa = _make_synapse()
+    with patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post:  # pylint: disable=protected-access
+        mock_post.return_value = _fake(200, {"access_token": "syt_minted"})
+        assert await sa.mint_access_token("@bot:example.test") == "syt_minted"
+
+
+@pytest.mark.asyncio
+async def test_space_children_excludes_the_space_itself() -> None:
+    """The hierarchy response includes the space; only its children are wanted."""
+    sa = _make_synapse()
+    with patch.object(sa._client, "get", new_callable=AsyncMock) as mock_get:  # pylint: disable=protected-access
+        mock_get.return_value = _fake(
+            200,
+            {
+                "rooms": [
+                    {"room_id": "!space:example.test"},
+                    {"room_id": "!general:example.test"},
+                    {"room_id": "!usermade:example.test"},
+                ]
+            },
+        )
+        children = await sa.space_children("!space:example.test")
+    assert children == ["!general:example.test", "!usermade:example.test"]
+
+
+@pytest.mark.asyncio
+async def test_space_children_returns_empty_on_failure() -> None:
+    """A broken hierarchy must not stop the standard rooms from being handled."""
+    sa = _make_synapse()
+    with patch.object(sa._client, "get", new_callable=AsyncMock) as mock_get:  # pylint: disable=protected-access
+        mock_get.return_value = _fake(403, {"errcode": "M_FORBIDDEN"})
+        assert await sa.space_children("!space:example.test") == []
+
+
+@pytest.mark.asyncio
+async def test_validate_user_token_uses_the_client_api() -> None:
+    """A non-admin token 403s on the admin API, so whoami is what we must call."""
+    sa = _make_synapse()
+    with patch.object(sa._client, "get", new_callable=AsyncMock) as mock_get:  # pylint: disable=protected-access
+        mock_get.return_value = _fake(200, {"user_id": "@bot:example.test"})
+        assert await sa.validate_user_token("syt_x") is True
+    assert "/_matrix/client/v3/account/whoami" in mock_get.call_args.args[0]
