@@ -45,6 +45,11 @@ class SynapseAdmin:
         self._bot_user_id: Optional[str] = None
         self._client: httpx.AsyncClient = httpx.AsyncClient()
 
+    @property
+    def domain(self) -> str:
+        """The server_name MXIDs are built from."""
+        return self._domain
+
     async def close(self) -> None:
         """Close the underlying HTTP client."""
         await self._client.aclose()
@@ -73,7 +78,7 @@ class SynapseAdmin:
                 return
             LOGGER.warning("Stored token invalid, will re-register bot")
 
-        token = await self._register_bot(registration_secret, bot_username)
+        token = await self.register_bot(registration_secret, bot_username)
         token_file.parent.mkdir(parents=True, exist_ok=True)
         token_file.write_text(token)
         os.chmod(token_file, 0o600)
@@ -114,8 +119,16 @@ class SynapseAdmin:
         except Exception:  # pylint: disable=broad-except
             return False
 
-    async def _register_bot(self, registration_secret: str, username: str) -> str:
-        """Register a new Synapse admin user via HMAC-signed register endpoint."""
+    async def register_bot(
+        self, registration_secret: str, username: str, *, admin: bool = True
+    ) -> str:
+        """Register a user via the HMAC-signed register endpoint, returns its token.
+
+        Unlike the admin "login as user" API, registering creates a **device**, and
+        the returned token is bound to it. That matters for any consumer that has
+        to read end-to-end-encrypted rooms: room keys are shared with devices, so a
+        device-less token is handed nothing it can decrypt.
+        """
         nonce_resp = await self._client.get(
             f"{self._url}/_synapse/admin/v1/register",
             timeout=10.0,
@@ -125,7 +138,9 @@ class SynapseAdmin:
 
         # Synapse uses HMAC-SHA1 for the registration MAC
         rand_password = secrets.token_hex(32)
-        mac_content = f"{nonce}\0{username}\0{rand_password}\0admin"
+        # The 4th field is the literal "admin" or "notadmin" — Synapse's own
+        # reference implementation does mac.update(b"admin" if admin else b"notadmin").
+        mac_content = f"{nonce}\0{username}\0{rand_password}\0{'admin' if admin else 'notadmin'}"
         mac = hmac.new(
             registration_secret.encode("utf-8"),
             mac_content.encode("utf-8"),
@@ -138,7 +153,7 @@ class SynapseAdmin:
                 "nonce": nonce,
                 "username": username,
                 "password": rand_password,
-                "admin": True,
+                "admin": admin,
                 "mac": mac,
             },
             timeout=30.0,
@@ -258,15 +273,17 @@ class SynapseAdmin:
         """Create or update a local account, returns the MXID. Idempotent.
 
         Uses the admin create-or-modify API rather than shared-secret registration:
-        no HMAC, no registration secret, and re-running it is a no-op. No password
-        is ever set. Setting one would log out all the user's devices and so
-        invalidate a previously minted token on every restart, and password login
-        is disabled server-wide anyway.
+        no HMAC, no registration secret, and re-running it is a no-op.
+
+        No password is set: this homeserver does not offer password login, and a
+        token that can read encrypted rooms has to come from registration anyway
+        (see register_bot).
         """
         user_id = f"@{localpart}:{self._domain}"
         body: Dict[str, Any] = {"admin": admin, "deactivated": False}
         if displayname:
             body["displayname"] = displayname
+
         resp = await self._client.put(
             f"{self._url}/_synapse/admin/v2/users/{quote(user_id, safe='')}",
             headers=self._auth,

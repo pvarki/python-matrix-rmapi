@@ -37,10 +37,13 @@ SYNAPSE_TOKEN_FILE: Path = cfg(
 # plain local user, not a server admin: its token can only read and write the
 # rooms it has been joined to.
 BATTLELOG_BOT_USERNAME: str = cfg("BATTLELOG_BOT_USERNAME", default="battlelog-bot")
-BATTLELOG_TOKEN_FILE: Path = cfg(
-    "BATTLELOG_TOKEN_FILE",
+# Credentials BattleLog logs in with. A password rather than a ready-made access
+# token because logging in is what gets it a *device*, and a device is what other
+# clients share end-to-end encryption keys with.
+BATTLELOG_CREDENTIALS_FILE: Path = cfg(
+    "BATTLELOG_CREDENTIALS_FILE",
     cast=Path,
-    default=Path("/data/persistent/battlelog_bot_token"),
+    default=Path("/data/persistent/battlelog_bot_credentials.json"),
 )
 # Cert CNs of products RASENMAEHER has granted interop with us. A file rather than
 # app.state because gunicorn runs several workers and /interop/add may land on a

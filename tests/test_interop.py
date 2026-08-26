@@ -23,12 +23,12 @@ PAYLOAD = {"certcn": PEER_CN, "x509cert": "-----BEGIN CERTIFICATE-----\\nx\\n"}
 def isolated_files(tmp_path: Path) -> Generator[Path, None, None]:
     """Point the registry and token files at a temp dir."""
     orig_products = config.INTEROP_PRODUCTS_FILE
-    orig_token = config.BATTLELOG_TOKEN_FILE
+    orig_token = config.BATTLELOG_CREDENTIALS_FILE
     config.INTEROP_PRODUCTS_FILE = tmp_path / "interop_products.json"
-    config.BATTLELOG_TOKEN_FILE = tmp_path / "battlelog_bot_token"
+    config.BATTLELOG_CREDENTIALS_FILE = tmp_path / "battlelog_bot_credentials.json"
     yield tmp_path
     config.INTEROP_PRODUCTS_FILE = orig_products
-    config.BATTLELOG_TOKEN_FILE = orig_token
+    config.BATTLELOG_CREDENTIALS_FILE = orig_token
 
 
 def test_add_requires_a_cert(isolated_files: Path) -> None:
@@ -37,9 +37,7 @@ def test_add_requires_a_cert(isolated_files: Path) -> None:
     assert client.post("/api/v1/interop/add", json=PAYLOAD).status_code == 403
 
 
-def test_add_requires_rasenmaeher(
-    isolated_files: Path, mtlsclient: TestClient
-) -> None:
+def test_add_requires_rasenmaeher(isolated_files: Path, mtlsclient: TestClient) -> None:
     """Only RASENMAEHER may grant interop, any other CN gets 403"""
     assert mtlsclient.post("/api/v1/interop/add", json=PAYLOAD).status_code == 403
 
@@ -71,16 +69,21 @@ def test_add_then_authz(
         == 200
     )
 
-    # Synapse startup has not run, so there is no token yet: retryable, not fatal
+    # Synapse startup has not run, so there are no credentials yet: retryable
     assert mtlsclient.get("/api/v1/interop/authz").status_code == 503
 
-    config.BATTLELOG_TOKEN_FILE.write_text("syt_testtoken\n", encoding="utf-8")
+    config.BATTLELOG_CREDENTIALS_FILE.write_text(
+        '{"user_id": "@battlelog-bot:example.test", "access_token": "syt_dev_bound"}',
+        encoding="utf-8",
+    )
     resp = mtlsclient.get("/api/v1/interop/authz")
     assert resp.status_code == 200
+    # A token, but one registration bound to a device — that is what room keys
+    # are shared with.
     assert resp.json() == {
         "type": "bearer-token",
-        "token": "syt_testtoken",
-        "username": None,
+        "token": "syt_dev_bound",
+        "username": "@battlelog-bot:example.test",
         "password": None,
         "ro_password": None,
     }

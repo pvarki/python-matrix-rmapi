@@ -89,16 +89,23 @@ Product interop
 
 ``GET /api/v1/interop/authz``
     Called by the peer product itself over mTLS. Returns
-    ``{"type": "bearer-token", "token": ...}`` with the ingest bot's Matrix access token,
-    or ``403`` if that CN was never registered, or ``503`` if Synapse startup has not
-    produced the bot yet (retryable).
+    ``{"type": "bearer-token", "token": ..., "username": "@battlelog-bot:<domain>"}``,
+    or ``403`` if that CN was never registered, or ``503`` if Synapse startup has
+    not produced the bot yet (retryable).
+
+    The token is bound to a **device**, because the bot is created by shared-secret
+    registration rather than by the admin "login as user" API. This is the whole
+    reason for that choice: room keys in Matrix are shared with devices, so a
+    device-less token can be in every room and still decrypt nothing. The token is
+    stored and reused — a fresh device would not hold the keys already shared with
+    the old one. This homeserver does not offer password login at all
+    (``password_config.enabled: false``), so registration is also the only route.
 
 The ingest bot (``@battlelog-bot:<domain>`` by default) is a **plain local user, not a
-server admin**. Its token can only read and write the rooms it has been joined to. It is
-created with the admin create-or-modify API and given a token with the admin
-"login as user" API, so no password is ever set and the registration shared secret is not
-involved. Neither ``SYNAPSE_REGISTRATION_SECRET`` nor the admin bot's own token is ever
-handed to a peer product.
+server admin**. It can only read and write the rooms it has been joined to. It is created
+with the admin create-or-modify API, and the registration shared secret is not involved.
+Neither ``SYNAPSE_REGISTRATION_SECRET`` nor the admin bot's own token is ever handed to a
+peer product.
 
 Both the token and the peer registry are files rather than process state, because
 gunicorn runs several workers and ``/interop/add`` may land on a different one than the
@@ -166,9 +173,9 @@ Configuration
    * - ``BATTLELOG_BOT_USERNAME``
      - ``battlelog-bot``
      - Local part of the read-only ingest bot handed to BattleLog
-   * - ``BATTLELOG_TOKEN_FILE``
-     - ``/data/persistent/battlelog_bot_token``
-     - File where the ingest bot's access token is cached between restarts
+   * - ``BATTLELOG_CREDENTIALS_FILE``
+     - ``/data/persistent/battlelog_bot_credentials.json``
+     - File holding the ingest bot's MXID and device-bound access token
    * - ``INTEROP_PRODUCTS_FILE``
      - ``/data/persistent/interop_products.json``
      - File listing cert CNs Rasenmaeher has granted interop with us

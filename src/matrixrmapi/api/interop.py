@@ -61,18 +61,27 @@ async def add_product(
 
 @router.get("/authz")
 async def get_authz(request: Request) -> ProductAuthzResponse:
-    """Hand a registered peer product the ingest bot's access token.
+    """Hand a registered peer product the ingest bot's login.
 
-    The token belongs to a plain local user, not a server admin, so it can only
-    read and write the rooms the bot has been joined to.
+    The token is bound to a **device**, because it came from registration rather
+    than from the admin "login as user" API. That is what makes reading
+    end-to-end-encrypted rooms possible at all: room keys are shared with
+    devices, and a device-less token is handed nothing it can decrypt.
+
+    The account is a plain local user, not a server admin, so it can only read
+    and write the rooms the bot has been joined to.
     """
     certcn = request.state.mtlsdn.get("CN")
     if certcn not in _registered_products():
         LOGGER.warning("Unregistered product %s asked for authz", certcn)
         raise HTTPException(status_code=403)
-    if not config.BATTLELOG_TOKEN_FILE.exists():
+    if not config.BATTLELOG_CREDENTIALS_FILE.exists():
         # Synapse startup has not got far enough yet, or it failed. Retryable.
-        LOGGER.warning("No ingest bot token yet, %s must retry", certcn)
+        LOGGER.warning("No ingest bot credentials yet, %s must retry", certcn)
         raise HTTPException(status_code=503, detail="Ingest bot not ready")
-    token = config.BATTLELOG_TOKEN_FILE.read_text(encoding="utf-8").strip()
-    return ProductAuthzResponse(type="bearer-token", token=token)
+    creds = json.loads(config.BATTLELOG_CREDENTIALS_FILE.read_text(encoding="utf-8"))
+    return ProductAuthzResponse(
+        type="bearer-token",
+        token=str(creds["access_token"]),
+        username=str(creds["user_id"]),
+    )
