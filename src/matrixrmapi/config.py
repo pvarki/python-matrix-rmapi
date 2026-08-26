@@ -36,7 +36,10 @@ SYNAPSE_TOKEN_FILE: Path = cfg(
 # Read-only ingest bot handed to BattleLog over the product interop API. It is a
 # plain local user, not a server admin: its token can only read and write the
 # rooms it has been joined to.
-BATTLELOG_BOT_USERNAME: str = cfg("BATTLELOG_BOT_USERNAME", default="battlelog-bot")
+# "-ingest" rather than "-bot": an earlier iteration created battlelog-bot with a
+# device-less token, and Synapse keeps a localpart reserved even after the account
+# is deactivated, so a bot that can hold encryption keys needs its own name.
+BATTLELOG_BOT_USERNAME: str = cfg("BATTLELOG_BOT_USERNAME", default="battlelog-ingest")
 # Credentials BattleLog logs in with. A password rather than a ready-made access
 # token because logging in is what gets it a *device*, and a device is what other
 # clients share end-to-end encryption keys with.

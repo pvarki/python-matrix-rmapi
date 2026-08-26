@@ -101,7 +101,7 @@ Product interop
     the old one. This homeserver does not offer password login at all
     (``password_config.enabled: false``), so registration is also the only route.
 
-The ingest bot (``@battlelog-bot:<domain>`` by default) is a **plain local user, not a
+The ingest bot (``@battlelog-ingest:<domain>`` by default) is a **plain local user, not a
 server admin**. It can only read and write the rooms it has been joined to. It is created
 with the admin create-or-modify API, and the registration shared secret is not involved.
 Neither ``SYNAPSE_REGISTRATION_SECRET`` nor the admin bot's own token is ever handed to a
@@ -171,7 +171,7 @@ Configuration
      - *(from kraftwerk manifest)*
      - Matrix server_name; derived automatically from the product DNS label
    * - ``BATTLELOG_BOT_USERNAME``
-     - ``battlelog-bot``
+     - ``battlelog-ingest``
      - Local part of the read-only ingest bot handed to BattleLog
    * - ``BATTLELOG_CREDENTIALS_FILE``
      - ``/data/persistent/battlelog_bot_credentials.json``
