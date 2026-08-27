@@ -140,7 +140,9 @@ class SynapseAdmin:
         rand_password = secrets.token_hex(32)
         # The 4th field is the literal "admin" or "notadmin" — Synapse's own
         # reference implementation does mac.update(b"admin" if admin else b"notadmin").
-        mac_content = f"{nonce}\0{username}\0{rand_password}\0{'admin' if admin else 'notadmin'}"
+        mac_content = (
+            f"{nonce}\0{username}\0{rand_password}\0{'admin' if admin else 'notadmin'}"
+        )
         mac = hmac.new(
             registration_secret.encode("utf-8"),
             mac_content.encode("utf-8"),

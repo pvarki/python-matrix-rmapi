@@ -23,7 +23,10 @@ def _stored() -> Optional[Dict[str, str]]:
         LOGGER.error("Could not read %s: %s", config.BATTLELOG_CREDENTIALS_FILE, exc)
         return None
     if "user_id" in data and "access_token" in data:
-        return {"user_id": str(data["user_id"]), "access_token": str(data["access_token"])}
+        return {
+            "user_id": str(data["user_id"]),
+            "access_token": str(data["access_token"]),
+        }
     return None
 
 
@@ -37,7 +40,9 @@ def _store(user_id: str, access_token: str) -> None:
     os.replace(tmp, config.BATTLELOG_CREDENTIALS_FILE)
 
 
-async def ensure_battlelog_bot(synapse: SynapseAdmin, rooms: Dict[str, str]) -> Optional[str]:
+async def ensure_battlelog_bot(
+    synapse: SynapseAdmin, rooms: Dict[str, str]
+) -> Optional[str]:
     """Ensure the ingest bot exists and is joined everywhere. Returns its MXID.
 
     The bot is created by **shared-secret registration**, not by the admin
@@ -60,7 +65,9 @@ async def ensure_battlelog_bot(synapse: SynapseAdmin, rooms: Dict[str, str]) -> 
         user_id = existing["user_id"]
     else:
         if existing:
-            LOGGER.warning("Stored BattleLog bot token is no longer valid, registering again")
+            LOGGER.warning(
+                "Stored BattleLog bot token is no longer valid, registering again"
+            )
         token = await synapse.register_bot(
             config.SYNAPSE_REGISTRATION_SECRET,
             config.BATTLELOG_BOT_USERNAME,
