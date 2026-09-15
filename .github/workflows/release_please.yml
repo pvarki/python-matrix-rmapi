@@ -13,6 +13,7 @@ jobs:
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
@@ -39,6 +40,34 @@ jobs:
         run: |
           uv run matrixrmapi openapi > openapi.json
           gh release upload "${{ needs.release-please.outputs.tag_name }}" openapi.json --clobber
+
+  # Changelog, release notes and slides to releases.
+  release-notes:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+          fetch-depth: 0
+      - uses: pvarki/config-ci-library/.github/actions/release-notes@main
+        id: notes
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+          release: ${{ needs.release-please.outputs.version }}
+          product: matrix-integration
+          attach-to-release: "true"
+      - name: Use the generated release notes as the release body
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release edit "${{ needs.release-please.outputs.tag_name }}" \
+            --notes-file "${{ steps.notes.outputs.body }}"
 
   publish-image:
     needs: release-please
