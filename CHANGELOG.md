@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/pvarki/python-matrix-rmapi/compare/v1.3.2...v1.4.0) (2026-09-16)
+
+
+### Features
+
+* attach release-notes to release ([7324383](https://github.com/pvarki/python-matrix-rmapi/commit/73243833552bfffedfccc4c65260e601cfac229b))
+
 ## [1.3.2](https://github.com/pvarki/python-matrix-rmapi/compare/v1.3.1...v1.3.2) (2026-08-12)
 
 
