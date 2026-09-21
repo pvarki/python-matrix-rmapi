@@ -162,7 +162,8 @@
       "open_website": "Öppna webbplatsen för nedladdning",
       "google_play": "Hämta på Google Play",
       "app_store": "Ladda ned från App Store"
-    }
+    },
+    "disableAutoOpen": "Visa inte guider automatiskt för mig"
   },
   "platform": {
     "select_placeholder": "Välj plattform",
