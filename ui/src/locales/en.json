@@ -162,7 +162,8 @@
       "open_website": "Open download website",
       "google_play": "Download from Google Play",
       "app_store": "Download from App Store"
-    }
+    },
+    "disableAutoOpen": "Do not show me guides automatically"
   },
   "platform": {
     "select_placeholder": "Select platform",

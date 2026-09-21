@@ -162,7 +162,8 @@
       "open_website": "Avaa lataussivusto",
       "google_play": "Lataa Google Playsta",
       "app_store": "Lataa App Storesta"
-    }
+    },
+    "disableAutoOpen": "Älä näytä minulle ohjeita automaattisesti"
   },
   "platform": {
     "select_placeholder": "Valitse alusta",

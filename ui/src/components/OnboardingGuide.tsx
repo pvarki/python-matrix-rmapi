@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, ChevronLeft, Info } from "lucide-react";
+import { ChevronRight, ChevronLeft, Info, EyeOff } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -253,12 +253,17 @@ export function OnboardingHandler() {
       setCurrentStep(targetStep);
     }
 
-    if (!finished && firstIncomplete !== -1) {
+    // The info button still opens this; only the uninvited appearance stops.
+    if (
+      metadata.autoOpenGuides !== false &&
+      !finished &&
+      firstIncomplete !== -1
+    ) {
       setOpen(true);
     }
 
     setInitialized(true);
-  }, [storageKeys, initialized, relevantSteps]);
+  }, [storageKeys, initialized, relevantSteps, metadata.autoOpenGuides]);
 
   useEffect(() => {
     if (storageKeys && initialized) {
@@ -468,6 +473,20 @@ export function OnboardingHandler() {
           <ChevronRight className="w-4 h-4 ml-2" />
         </Button>
       </div>
+
+      {currentStep === 0 && (
+        <button
+          type="button"
+          onClick={() => {
+            metadata.onDisableGuides?.();
+            handleOpenChange(false);
+          }}
+          className="flex w-full items-center gap-2 px-4 pb-3 text-left text-xs text-muted-foreground hover:text-foreground"
+        >
+          <EyeOff className="h-3.5 w-3.5 shrink-0" />
+          {t("onboarding.disableAutoOpen")}
+        </button>
+      )}
 
       <div className="h-1.5 w-full bg-muted shrink-0">
         <div
