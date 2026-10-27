@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.4.0](https://github.com/pvarki/python-matrix-rmapi/compare/v1.3.2...v1.4.0) (2026-10-27)
+
+
+### Features
+
+* attach release-notes to release ([7324383](https://github.com/pvarki/python-matrix-rmapi/commit/73243833552bfffedfccc4c65260e601cfac229b))
+* honour the Deploy App guide opt-out ([17600af](https://github.com/pvarki/python-matrix-rmapi/commit/17600af8dd783b993daeaef91f47752c76509402))
+
+
+### Bug Fixes
+
+* **deps:** update filelock and uv ([4a547aa](https://github.com/pvarki/python-matrix-rmapi/commit/4a547aa8ffbe8897624a35ac4f3037bd76ce7bde))
+
+
+### Other Changes
+
+* allow generated lockfile in bootstrap ([97886f9](https://github.com/pvarki/python-matrix-rmapi/commit/97886f9b0dbeca8483c2b8708b420307acd7d6b7))
+* **deps:** refresh dependencies ([aaaf2c8](https://github.com/pvarki/python-matrix-rmapi/commit/aaaf2c872fd22132a23618d4092be85ff1120a3a))
+* **deps:** update Kraftwerk helper image ([2d93a6f](https://github.com/pvarki/python-matrix-rmapi/commit/2d93a6f81bb0c7a45c3793151648b93187af8d53))
+* **docker:** normalize stage keyword casing ([10cbc6f](https://github.com/pvarki/python-matrix-rmapi/commit/10cbc6f035db9f3e7d5b257e32f8ba362ce51bd0))
+* use hosted runners for lightweight checks ([f9482a7](https://github.com/pvarki/python-matrix-rmapi/commit/f9482a7c351c468df2da173f4ae17c3596aec706))
+
 ## [1.3.2](https://github.com/pvarki/python-matrix-rmapi/compare/v1.3.1...v1.3.2) (2026-08-12)
 
 
