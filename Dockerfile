@@ -2,7 +2,7 @@
 #############################################
 # Tox testsuite for multiple python version #
 #############################################
-FROM advian/tox-base:debian-bookworm as tox
+FROM advian/tox-base:debian-bookworm AS tox
 ARG PYTHON_VERSIONS="3.12"
 RUN export RESOLVED_VERSIONS=`pyenv_resolve $PYTHON_VERSIONS` \
     && echo RESOLVED_VERSIONS=$RESOLVED_VERSIONS \
@@ -23,7 +23,7 @@ RUN uv sync \
 ######################
 # Base builder image #
 ######################
-FROM python:3.12-bookworm as builder_base
+FROM python:3.12-bookworm AS builder_base
 ENV \
   # locale
   LC_ALL=C.UTF-8 \
@@ -73,7 +73,7 @@ RUN --mount=type=ssh uv sync --no-dev --no-install-project \
 ####################################
 # Base stage for production builds #
 ####################################
-FROM builder_base as production_build
+FROM builder_base AS production_build
 # Copy entrypoint script
 COPY ./docker/entrypoint.sh /docker-entrypoint.sh
 COPY ./docker/container-init.sh /container-init.sh
@@ -97,7 +97,7 @@ RUN --mount=type=ssh source /pysetup/.venv/bin/activate \
 #########################
 # Main production build #
 #########################
-FROM python:3.12-slim-bookworm as production
+FROM python:3.12-slim-bookworm AS production
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 COPY --from=production_build /tmp/wheelhouse /tmp/wheelhouse
 COPY --from=production_build /ui_build /ui_build
@@ -128,7 +128,7 @@ ENTRYPOINT ["/usr/bin/tini", "--", "/docker-entrypoint.sh"]
 #####################################
 # Base stage for development builds #
 #####################################
-FROM builder_base as devel_build
+FROM builder_base AS devel_build
 # Install deps
 COPY . /app
 COPY ./docker/entrypoint-dev.sh /entrypoint-dev.sh
@@ -142,7 +142,7 @@ RUN --mount=type=ssh uv sync \
 ##############
 # Run tests #
 #############
-FROM devel_build as test
+FROM devel_build AS test
 WORKDIR /app
 ENTRYPOINT ["/usr/bin/tini", "--", "docker/entrypoint-test.sh"]
 # Re run install to get the service itself installed
@@ -155,7 +155,7 @@ RUN --mount=type=ssh uv sync \
 ###########
 # Hacking #
 ###########
-FROM devel_build as devel_shell
+FROM devel_build AS devel_shell
 # Copy everything to the image
 COPY --from=ghcr.io/pvarki/kraftwerk-helper-tool:1.4.1-261027 /kw_product_init /kw_product_init
 WORKDIR /app
