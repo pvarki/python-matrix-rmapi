@@ -26,7 +26,7 @@ jobs:
           uv run docker/pre_commit_init.sh
 
   test:
-    runs-on: arc-runner-set
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
