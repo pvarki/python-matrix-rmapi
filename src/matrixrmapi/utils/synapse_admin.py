@@ -11,7 +11,6 @@ from urllib.parse import quote
 
 import httpx
 
-from ..types import CALL_EVENTS_DEFAULT_LEVEL
 from .mas_admin import MasAdmin
 
 LOGGER = logging.getLogger(__name__)
@@ -19,6 +18,9 @@ LOGGER = logging.getLogger(__name__)
 MATRIX_LOCALPART_RE = re.compile(r"^[a-z0-9._\-=/+]+$")
 # Create a new bot session this many seconds before the old one expires
 BOT_TOKEN_EXPIRY_SKEW = 60.0
+# From this room version (MSC4289) the creator has infinite power and must not be
+# named in m.room.power_levels
+CREATOR_PRIVILEGED_ROOM_VERSION = 12
 
 
 def matrix_user_id(callsign: str, server_domain: str) -> str:
@@ -48,6 +50,7 @@ class SynapseAdmin:
         self._bot_username: str | None = None
         self._bot_ulid: str | None = None
         self._bot_user_id: str | None = None
+        self._creator_privileged: bool | None = None
         self._client: httpx.AsyncClient = httpx.AsyncClient()
 
     async def close(self) -> None:
@@ -139,6 +142,34 @@ class SynapseAdmin:
         resp.raise_for_status()
         return str(resp.json()["room_id"])
 
+    async def _creator_is_privileged(self) -> bool:
+        """Does the default room version give the creator infinite power? Cached.
+
+        Falls back to True: omitting the bot only costs it demotion rights,
+        naming it on room version 12 breaks room creation outright.
+        """
+        if self._creator_privileged is None:
+            self._creator_privileged = True
+            try:
+                resp = await self._client.get(
+                    f"{self._url}/_matrix/client/v3/capabilities",
+                    headers=await self._auth(),
+                    timeout=10.0,
+                )
+                resp.raise_for_status()
+                version = str(resp.json()["capabilities"]["m.room_versions"]["default"])
+                self._creator_privileged = (
+                    int(version) >= CREATOR_PRIVILEGED_ROOM_VERSION
+                )
+                LOGGER.info("Default room version is %s", version)
+            except (httpx.HTTPError, KeyError, ValueError) as exc:
+                LOGGER.warning(
+                    "Could not read the default room version (%s); "
+                    "assuming the creator is privileged",
+                    exc,
+                )
+        return self._creator_privileged
+
     async def create_room(
         self,
         name: str,
@@ -159,12 +190,10 @@ class SynapseAdmin:
             body["creation_content"] = {"type": "m.space"}
         # Set bot to power level 200 so it can always demote admins (who are at 100).
         # Matrix spec: you cannot lower a user at power level >= your own.
-        # Explicitly allow call events at level 0 so normal users can start calls.
-        if self._bot_user_id:
-            body["power_level_content_override"] = {
-                "users": {self._bot_user_id: 200},
-                "events": dict(CALL_EVENTS_DEFAULT_LEVEL),
-            }
+        # From room version 12 the creator already has infinite power and naming it here
+        # is rejected. Call event levels are applied by configure_rooms_state().
+        if self._bot_user_id and not await self._creator_is_privileged():
+            body["power_level_content_override"] = {"users": {self._bot_user_id: 200}}
 
         resp = await self._client.post(
             f"{self._url}/_matrix/client/v3/createRoom",
@@ -172,6 +201,10 @@ class SynapseAdmin:
             json=body,
             timeout=30.0,
         )
+        if resp.status_code >= 400:
+            LOGGER.error(
+                "createRoom %s failed: %s %s", alias, resp.status_code, resp.text
+            )
         resp.raise_for_status()
         return str(resp.json()["room_id"])
 
