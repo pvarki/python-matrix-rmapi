@@ -24,12 +24,21 @@ def _fake(status: int, body: dict[str, Any]) -> httpx.Response:
     return httpx.Response(status, json=body, request=FAKE_REQUEST)
 
 
-def _make_synapse() -> SynapseAdmin:
-    """Return a SynapseAdmin ready for unit testing (real token + bot user set directly)."""
+def _caps(version: str) -> httpx.Response:
+    """Fake /capabilities response advertising a default room version."""
+    return _fake(200, {"capabilities": {"m.room_versions": {"default": version}}})
+
+
+def _make_synapse(creator_privileged: bool | None = True) -> SynapseAdmin:
+    """Return a SynapseAdmin ready for unit testing (real token + bot user set directly).
+
+    The room-version probe is pre-answered by default; pass None to exercise it.
+    """
     sa = SynapseAdmin("http://synapse.test", "example.test")
     sa._token = "test-token"  # nosec B105
     sa._token_expires = time.monotonic() + 1000
     sa._bot_user_id = "@bot:example.test"
+    sa._creator_privileged = creator_privileged
     return sa
 
 
@@ -162,17 +171,79 @@ async def test_kick_other_403_raises() -> None:
 
 
 @pytest.mark.asyncio
-async def test_create_room_sets_bot_at_power_200() -> None:
-    """Bot must start at power level 200 so it can demote users at 100."""
-    sa = _make_synapse()
-    with patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post:
+async def test_create_room_sets_bot_at_power_200_before_v12() -> None:
+    """Up to room version 11 the bot must start at 200 so it can demote users at 100."""
+    sa = _make_synapse(creator_privileged=None)
+    with (
+        patch.object(sa._client, "get", new_callable=AsyncMock) as mock_get,
+        patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post,
+    ):
+        mock_get.return_value = _caps("11")
         mock_post.return_value = _fake(200, {"room_id": "!new:example.test"})
         await sa.create_room("TestRoom", "#test-room:example.test")
         body: dict[str, Any] = mock_post.call_args.kwargs["json"]
-        users: dict[str, int] = body.get("power_level_content_override", {}).get(
-            "users", {}
-        )
-        assert users.get("@bot:example.test") == 200
+        override: dict[str, Any] = body["power_level_content_override"]
+        assert override == {"users": {"@bot:example.test": 200}}
+
+
+@pytest.mark.asyncio
+async def test_create_room_omits_override_on_v12() -> None:
+    """Room version 12 rejects a power_levels event naming the creator, so send none."""
+    sa = _make_synapse(creator_privileged=None)
+    with (
+        patch.object(sa._client, "get", new_callable=AsyncMock) as mock_get,
+        patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post,
+    ):
+        mock_get.return_value = _caps("12")
+        mock_post.return_value = _fake(200, {"room_id": "!new:example.test"})
+        await sa.create_room("TestRoom", "#test-room:example.test")
+        body: dict[str, Any] = mock_post.call_args.kwargs["json"]
+        assert "power_level_content_override" not in body
+
+
+@pytest.mark.asyncio
+async def test_create_room_assumes_privileged_when_capabilities_fail() -> None:
+    """An unreadable capabilities endpoint must not produce a creator-naming override."""
+    sa = _make_synapse(creator_privileged=None)
+    with (
+        patch.object(sa._client, "get", new_callable=AsyncMock) as mock_get,
+        patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post,
+    ):
+        mock_get.return_value = _fake(500, {"errcode": "M_UNKNOWN"})
+        mock_post.return_value = _fake(200, {"room_id": "!new:example.test"})
+        await sa.create_room("TestRoom", "#test-room:example.test")
+        body: dict[str, Any] = mock_post.call_args.kwargs["json"]
+        assert "power_level_content_override" not in body
+
+
+@pytest.mark.asyncio
+async def test_create_room_assumes_privileged_on_unstable_room_version() -> None:
+    """A non-numeric default room version must fall back to the safe assumption."""
+    sa = _make_synapse(creator_privileged=None)
+    with (
+        patch.object(sa._client, "get", new_callable=AsyncMock) as mock_get,
+        patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post,
+    ):
+        mock_get.return_value = _caps("org.matrix.msc3787")
+        mock_post.return_value = _fake(200, {"room_id": "!new:example.test"})
+        await sa.create_room("TestRoom", "#test-room:example.test")
+        body: dict[str, Any] = mock_post.call_args.kwargs["json"]
+        assert "power_level_content_override" not in body
+
+
+@pytest.mark.asyncio
+async def test_create_room_probes_room_version_once() -> None:
+    """The default room version is fetched once and cached for later rooms."""
+    sa = _make_synapse(creator_privileged=None)
+    with (
+        patch.object(sa._client, "get", new_callable=AsyncMock) as mock_get,
+        patch.object(sa._client, "post", new_callable=AsyncMock) as mock_post,
+    ):
+        mock_get.return_value = _caps("12")
+        mock_post.return_value = _fake(200, {"room_id": "!new:example.test"})
+        await sa.create_room("One", "#one:example.test")
+        await sa.create_room("Two", "#two:example.test")
+        assert mock_get.call_count == 1
 
 
 @pytest.mark.asyncio

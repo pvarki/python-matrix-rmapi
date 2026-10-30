@@ -37,9 +37,15 @@ The startup runs as a background task so the HTTP server is available immediatel
     7. Drain any promotions/demotions that arrived while rooms were not yet ready
        (see "Deferred queue" below).
 
-The admin bot is created at power level 200 in all rooms via ``power_level_content_override``
-so it can always demote admins (who are at level 100). This is a Matrix spec requirement:
-a user cannot lower the power level of another user at an equal-or-higher level.
+The admin bot must always outrank the admins it manages (who are at level 100), because the
+Matrix spec forbids lowering the power level of a user at an equal-or-higher level. How that
+is achieved depends on the homeserver's default room version, which is read once from
+``GET /_matrix/client/v3/capabilities``:
+
+* Up to room version 11 the bot is created at power level 200 via
+  ``power_level_content_override``.
+* From room version 12 (MSC4289) the room creator (the bot) holds infinite power
+  implicitly, and the server *rejects* any ``m.room.power_levels`` that names the creator.
 
 Rooms created
 ^^^^^^^^^^^^^
