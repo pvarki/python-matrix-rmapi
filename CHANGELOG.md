@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/pvarki/python-matrix-rmapi/compare/v1.4.0...v1.5.0) (2026-10-31)
+
+
+### Features
+
+* support room version 12 ([8d3973a](https://github.com/pvarki/python-matrix-rmapi/commit/8d3973a319d82e506f24358bf0b1fe79d5e9bbc0))
+
 ## [1.4.0](https://github.com/pvarki/python-matrix-rmapi/compare/v1.3.2...v1.4.0) (2026-10-27)
 
 
